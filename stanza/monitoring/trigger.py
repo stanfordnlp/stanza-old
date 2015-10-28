@@ -7,6 +7,9 @@ class Trigger(object):
     def should_stop(self):
         raise NotImplementedError()
 
+    def reset(self):
+        raise NotImplementedError()
+
 
 class EarlyStopping(Trigger):
 
@@ -41,6 +44,10 @@ class PatienceEarlyStopping(EarlyStopping):
         self.time_since_best += 1
         return self.time_since_best > self.patience
 
+    def reset(self):
+        self.best_so_far = -float('inf')
+        self.time_since_best = 0
+
 
 class SlopeThresholdEarlyStopping(EarlyStopping):
 
@@ -67,3 +74,7 @@ class SlopeThresholdEarlyStopping(EarlyStopping):
         # x is time, y is values. We interpolate the m and c in y = mx + c
         m, c = np.linalg.lstsq(self.A, self.y)[0]
         return m < self.min or m > self.max
+
+    def reset(self):
+        self.points_seen = 0
+        self.y.fill(0)
