@@ -1,5 +1,8 @@
 __author__ = 'victor'
 from collections import Counter
+import numpy as np
+from itertools import izip
+from ..util.resource import get_data_or_download
 
 
 class Vocab(object):
@@ -91,3 +94,46 @@ class Vocab(object):
                 v.add(word, count=count)
         return v
 
+
+class EmbeddedVocab(Vocab):
+
+    def __init__(self, unk):
+        super(EmbeddedVocab, self).__init__(unk=unk)
+
+    def get_embeddings(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def gen_word_list(cls, fname):
+        with open(fname) as f:
+            for line in f:
+                yield line.rstrip("\n\r")
+
+    @classmethod
+    def gen_embeddings(cls, fname):
+        with open(fname) as f:
+            for line in f:
+                yield np.fromstring(line, sep=' ')
+
+
+class SennaVocab(EmbeddedVocab):
+
+    embeddings_url = 'https://github.com/baojie/senna/raw/master/embeddings/embeddings.txt'
+    words_url = 'https://raw.githubusercontent.com/baojie/senna/master/hash/words.lst'
+    n_dim = 50
+
+    def __init__(self, rand=None):
+        super(SennaVocab, self).__init__(unk='UNKNOWN')
+        self.rand = rand if rand else lambda shape: np.random.uniform(-0.1, 0.1, size=shape)
+
+    def get_embeddings(self):
+        embeddings = get_data_or_download('senna', 'embeddings.txt', self.embeddings_url)
+        words = get_data_or_download('senna', 'words.lst', self.words_url)
+
+        E = self.rand((len(self), self.n_dim))
+
+        for word_emb in izip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
+            w, e = word_emb
+            if w in self:
+                E[self.word2index[w]] = e
+        return E
