@@ -14,7 +14,7 @@ class Vocab(object):
         self.unk = unk
 
         if self.unk:
-            self.add(self.unk)
+            self.add(self.unk, 0)
 
     def clear_counts(self):
         """
@@ -75,3 +75,19 @@ class Vocab(object):
             if self.counts[w] >= cutoff or w == self.unk: # don't remove unk
                 v.add(w, count=self.counts[w])
         return v
+
+    def sort_by_decreasing_count(self):
+        """
+        returns a **new** `Vocab` object that is ordered by decreasing count.
+        That is, the word at index 0 is the most common and so forth. If unknown
+        is supported, then the most common word is at index 1 and `unk` remains
+        in index 0.
+        """
+        v = self.__class__(unk=self.unk) # use __class__ to support subclasses
+        if self.unk:
+            v.add(self.unk, count=self.counts[self.unk])
+        for word, count in self.counts.most_common():
+            if word != self.unk:
+                v.add(word, count=count)
+        return v
+
