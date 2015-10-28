@@ -5,6 +5,24 @@ The Stanford NLP group's shared Python tools for deep learning.
 This [Google Doc](https://docs.google.com/document/d/1tD0v8hNNilusNq632tYKNUn1g3Kfgu5dGNOtD9MA94Q/edit) logs what we are doing. Feel free to discuss ideas and review code via issues as well.
 
 
+## Usage
+
+You can install the package as follows:
+
+```
+git clone git@github.com:stanfordnlp/stanza.git
+cd stanza
+pip install -e .
+```
+
+To use the package, import it in your python code. An example would be:
+
+```
+from stanza.text.vocab import Vocab
+v = Vocab()
+```
+
+
 ## Development Guide
 
 If you are adding a new module, please remember to add it to `setup.py`. You can create documentation for your
