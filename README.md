@@ -6,4 +6,4 @@ This [Google Doc](https://docs.google.com/document/d/1tD0v8hNNilusNq632tYKNUn1g3
 
 ## Contributors
 
-- <Put your name here when you contribute to the repo!>
+- `Put your name here when you contribute to the repo!`
