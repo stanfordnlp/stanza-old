@@ -3,21 +3,43 @@ import numpy as np
 
 
 class Trigger(object):
+    """
+    A generic Trigger object that performs some action on some event
+    """
+    pass
 
-    def should_stop(self):
-        raise NotImplementedError()
+
+class StatefulTriggerMixin(object):
+    """
+    A mix-in denoting triggers with memory
+    """
 
     def reset(self):
+        """
+        reset the Trigger to its initial state (eg. by clear its memory)
+        """
         raise NotImplementedError()
 
 
 class EarlyStopping(Trigger):
+    """
+    Indicates that the training should stop once some condition is reached by some variable.
+    Usually the variable is some evaluation metric on the development set.
+    """
 
     def should_stop(self, new_value):
+        """
+        new_value: value of the variable corresponding to this time step
+
+        returns True iff the early stopping criteria has been met
+        """
         raise NotImplementedError()
 
 
 class ThresholdEarlyStopping(EarlyStopping):
+    """
+    Triggers early stopping when the variable crosses the min threshold or the max threshold.
+    """
 
     def __init__(self, min_threshold=-float('inf'), max_threshold=float('inf')):
         super(ThresholdEarlyStopping, self).__init__()
@@ -28,7 +50,11 @@ class ThresholdEarlyStopping(EarlyStopping):
         return new_value > self.max or new_value < self.min
 
 
-class PatienceEarlyStopping(EarlyStopping):
+class PatienceEarlyStopping(EarlyStopping, StatefulTriggerMixin):
+    """
+    Triggers early stopping when N time steps has elapsed since the best value
+    for the variable was encountered. N is denoted by the patience parameter.
+    """
 
     def __init__(self, patience):
         super(PatienceEarlyStopping, self).__init__()
@@ -49,7 +75,13 @@ class PatienceEarlyStopping(EarlyStopping):
         self.time_since_best = 0
 
 
-class SlopeThresholdEarlyStopping(EarlyStopping):
+class SlopeThresholdEarlyStopping(EarlyStopping, StatefulTriggerMixin):
+    """
+    Triggers early stopping when the slope of the value in the most recent time window
+    exceeds the min threshold or the max threshold. The width of the window is denoted
+    by the time parameter. The slope is approximated via a least squares fit on the
+    data points in the window.
+    """
 
     def __init__(self, min_thresh=-float('inf'), max_thresh=float('inf'), time=5):
         super(SlopeThresholdEarlyStopping, self).__init__()
