@@ -122,15 +122,15 @@ class SennaVocab(EmbeddedVocab):
     words_url = 'https://raw.githubusercontent.com/baojie/senna/master/hash/words.lst'
     n_dim = 50
 
-    def __init__(self, rand=None):
-        super(SennaVocab, self).__init__(unk='UNKNOWN')
-        self.rand = rand if rand else lambda shape: np.random.uniform(-0.1, 0.1, size=shape)
+    def __init__(self, unk='UNKNOWN'):
+        super(SennaVocab, self).__init__(unk=unk)
 
-    def get_embeddings(self):
+    def get_embeddings(self, rand=None):
+        rand = rand if rand else lambda shape: np.random.uniform(-0.1, 0.1, size=shape)
         embeddings = get_data_or_download('senna', 'embeddings.txt', self.embeddings_url)
         words = get_data_or_download('senna', 'words.lst', self.words_url)
 
-        E = self.rand((len(self), self.n_dim))
+        E = rand((len(self), self.n_dim))
 
         for word_emb in izip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
             w, e = word_emb
