@@ -1,37 +1,37 @@
 __author__ = 'victor'
 
 from unittest import TestCase
-from stanza.monitoring.trigger import ThresholdEarlyStopping, SlopeThresholdEarlyStopping, PatienceEarlyStopping
+from stanza.monitoring.trigger import ThresholdTrigger, SlopeThresholdTrigger, PatienceTrigger
 
 
 class TestEarlyStopping(TestCase):
 
     def test_threshold(self):
-        e = ThresholdEarlyStopping(min_threshold=-10, max_threshold=2)
+        e = ThresholdTrigger(min_threshold=-10, max_threshold=2)
         for val in xrange(-10, 3):
-            self.assertFalse(e.should_stop(val))
-        self.assertTrue(e.should_stop(-10.1))
-        self.assertTrue(e.should_stop(2.1))
+            self.assertFalse(e(val))
+        self.assertTrue(e(-10.1))
+        self.assertTrue(e(2.1))
 
     def test_patience(self):
-        e = PatienceEarlyStopping(patience=3)
-        self.assertFalse(e.should_stop(10))
-        self.assertFalse(e.should_stop(9))
-        self.assertFalse(e.should_stop(8))
-        self.assertFalse(e.should_stop(11))
-        self.assertFalse(e.should_stop(10))
-        self.assertFalse(e.should_stop(1))
-        self.assertFalse(e.should_stop(10))
-        self.assertTrue(e.should_stop(10))
+        e = PatienceTrigger(patience=3)
+        self.assertFalse(e(10))
+        self.assertFalse(e(9))
+        self.assertFalse(e(8))
+        self.assertFalse(e(11))
+        self.assertFalse(e(10))
+        self.assertFalse(e(1))
+        self.assertFalse(e(10))
+        self.assertTrue(e(10))
 
     def test_slope_threshold(self):
-        e = SlopeThresholdEarlyStopping(min_thresh=-1, max_thresh=1, time=2)
-        self.assertFalse(e.should_stop(1))
-        self.assertFalse(e.should_stop(2))
-        self.assertFalse(e.should_stop(1.5))
-        self.assertTrue(e.should_stop(0.4))
+        e = SlopeThresholdTrigger(min_thresh=-1, max_thresh=1, time=2)
+        self.assertFalse(e(1))
+        self.assertFalse(e(2))
+        self.assertFalse(e(1.5))
+        self.assertTrue(e(0.4))
 
-        e = SlopeThresholdEarlyStopping(min_thresh=-1, max_thresh=1, time=2)
-        self.assertFalse(e.should_stop(1))
-        self.assertFalse(e.should_stop(2))
-        self.assertTrue(e.should_stop(3.1))
+        e = SlopeThresholdTrigger(min_thresh=-1, max_thresh=1, time=2)
+        self.assertFalse(e(1))
+        self.assertFalse(e(2))
+        self.assertTrue(e(3.1))
