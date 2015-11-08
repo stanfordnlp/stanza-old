@@ -34,7 +34,7 @@ class SlowTest(Command):
 setup(
     name='stanza',
     version='0.1',
-    packages=['stanza', 'stanza.text', 'stanza.util'],
+    packages=['stanza', 'stanza.text', 'stanza.monitoring', 'stanza.util'],
     url='https://github.com/stanfordnlp/stanza',
     license='MIT',
     author='Stanford NLP',
