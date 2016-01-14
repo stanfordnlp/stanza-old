@@ -1,7 +1,8 @@
 __author__ = 'victor'
-from collections import Counter
-import numpy as np
+from collections import Counter, namedtuple
 from itertools import izip
+import numpy as np
+import zipfile
 from ..util.resource import get_data_or_download
 
 
@@ -73,9 +74,9 @@ class Vocab(object):
         the indices in the new `Vocab` will be remapped (because rare
         words will have been removed).
         """
-        v = self.__class__(unk=self.unk) # use __class__ to support subclasses
+        v = self.__class__(unk=self.unk)  # use __class__ to support subclasses
         for w in self.index2word:
-            if self.counts[w] >= cutoff or w == self.unk: # don't remove unk
+            if self.counts[w] >= cutoff or w == self.unk:  # don't remove unk
                 v.add(w, count=self.counts[w])
         return v
 
@@ -86,7 +87,7 @@ class Vocab(object):
         is supported, then the most common word is at index 1 and `unk` remains
         in index 0.
         """
-        v = self.__class__(unk=self.unk) # use __class__ to support subclasses
+        v = self.__class__(unk=self.unk)  # use __class__ to support subclasses
         if self.unk:
             v.add(self.unk, count=self.counts[self.unk])
         for word, count in self.counts.most_common():
@@ -97,11 +98,18 @@ class Vocab(object):
 
 class EmbeddedVocab(Vocab):
 
-    def __init__(self, unk):
-        super(EmbeddedVocab, self).__init__(unk=unk)
-
     def get_embeddings(self):
         raise NotImplementedError()
+
+
+class SennaVocab(EmbeddedVocab):
+
+    embeddings_url = 'https://github.com/baojie/senna/raw/master/embeddings/embeddings.txt'
+    words_url = 'https://raw.githubusercontent.com/baojie/senna/master/hash/words.lst'
+    n_dim = 50
+
+    def __init__(self, unk='UNKNOWN'):
+        super(SennaVocab, self).__init__(unk=unk)
 
     @classmethod
     def gen_word_list(cls, fname):
@@ -115,25 +123,59 @@ class EmbeddedVocab(Vocab):
             for line in f:
                 yield np.fromstring(line, sep=' ')
 
-
-class SennaVocab(EmbeddedVocab):
-
-    embeddings_url = 'https://github.com/baojie/senna/raw/master/embeddings/embeddings.txt'
-    words_url = 'https://raw.githubusercontent.com/baojie/senna/master/hash/words.lst'
-    n_dim = 50
-
-    def __init__(self, unk='UNKNOWN'):
-        super(SennaVocab, self).__init__(unk=unk)
-
-    def get_embeddings(self, rand=None):
+    def get_embeddings(self, rand=None, dtype='float32'):
         rand = rand if rand else lambda shape: np.random.uniform(-0.1, 0.1, size=shape)
         embeddings = get_data_or_download('senna', 'embeddings.txt', self.embeddings_url)
         words = get_data_or_download('senna', 'words.lst', self.words_url)
 
-        E = rand((len(self), self.n_dim))
+        E = rand((len(self), self.n_dim)).astype(dtype)
 
         for word_emb in izip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
             w, e = word_emb
             if w in self:
                 E[self.word2index[w]] = e
         return E
+
+
+class GloveVocab(EmbeddedVocab):
+
+    GloveSetting = namedtuple('GloveSetting', ['url', 'n_dims', 'size', 'description'])
+    settings = {
+        'common_crawl_48': GloveSetting('http://nlp.stanford.edu/data/glove.42B.300d.zip',
+                                        [300], '1.75GB', '48B token common crawl'),
+        'common_crawl_840': GloveSetting('http://nlp.stanford.edu/data/glove.840B.300d.zip',
+                                         [300], '2.03GB', '840B token common crawl'),
+        'twitter': GloveSetting('http://nlp.stanford.edu/data/glove.twitter.27B.zip',
+                                [25, 50, 100, 200], '1.42GB', '27B token twitter'),
+        'wikipedia_gigaword': GloveSetting('http://nlp.stanford.edu/data/glove.6B.zip',
+                                           [50, 100, 200, 300], '822MB', '6B token wikipedia 2014 + gigaword 5'),
+    }
+
+    def __init__(self, unk='', corpus='common_crawl_48', n_dim=300):
+        super(GloveVocab, self).__init__(unk)
+        assert corpus in self.settings, '{} not in supported corpus {}'.format(corpus, self.settings.keys())
+        self.n_dim, self.corpus, self.setting = n_dim, corpus, self.settings[corpus]
+        assert n_dim in self.setting.n_dims, '{} not in supported dimensions {}'.format(n_dim, self.setting.n_dims)
+
+    def get_embeddings(self, rand=None, dtype='float32'):
+        rand = rand if rand else lambda shape: np.random.uniform(-0.1, 0.1, size=shape)
+        zip_file = get_data_or_download('glove', '{}.zip'.format(self.corpus), self.setting.url, size=self.setting.size)
+
+        E = rand((len(self), self.n_dim)).astype(dtype)
+        n_dim = str(self.n_dim)
+
+        with zipfile.ZipFile(open(zip_file)) as zf:
+            # should be only 1 txt file
+            names = [info.filename for info in zf.infolist() if info.filename.endswith('.txt') and n_dim in info.filename]
+            if not names:
+                s = 'no .txt files found in zip file that matches {}-dim!'.format(n_dim)
+                s += '\n available files: {}'.format(names)
+                raise IOError(s)
+            name = names[0]
+            with zf.open(name) as f:
+                for line in f:
+                    toks = line.rstrip().split(' ')
+                    word = toks[0]
+                    if word in self:
+                        E[self.word2index[word]] = np.array([float(w) for w in toks[1:]], dtype=dtype)
+            return E
