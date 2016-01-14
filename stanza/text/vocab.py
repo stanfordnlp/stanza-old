@@ -101,6 +101,13 @@ class EmbeddedVocab(Vocab):
     def get_embeddings(self):
         raise NotImplementedError()
 
+    def backfill_unk_emb(self, E, filled_words):
+        if self.unk:
+            unk_emb = E[self.word2index[self.unk]]
+            for i, word in enumerate(self.index2word):
+                if word not in filled_words:
+                    E[i] = unk_emb
+
 
 class SennaVocab(EmbeddedVocab):
 
@@ -130,10 +137,13 @@ class SennaVocab(EmbeddedVocab):
 
         E = rand((len(self), self.n_dim)).astype(dtype)
 
+        seen = []
         for word_emb in izip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
             w, e = word_emb
             if w in self:
+                seen += [w]
                 E[self.word2index[w]] = e
+        self.backfill_unk_emb(E, set(seen))
         return E
 
 
@@ -172,10 +182,13 @@ class GloveVocab(EmbeddedVocab):
                 s += '\n available files: {}'.format(names)
                 raise IOError(s)
             name = names[0]
+            seen = []
             with zf.open(name) as f:
                 for line in f:
                     toks = line.rstrip().split(' ')
                     word = toks[0]
                     if word in self:
+                        seen += [word]
                         E[self.word2index[word]] = np.array([float(w) for w in toks[1:]], dtype=dtype)
+            self.backfill_unk_emb(E, set(seen))
             return E
