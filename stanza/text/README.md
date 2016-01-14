@@ -97,3 +97,7 @@ In [10]: for w in v.index2word: print(w, E[v[w]])
        -1.71816   , -0.462719  , -0.82554   ,  0.4739    , -0.00290712,
         0.292862  ,  0.617549  , -0.825371  ,  1.04553   ,  1.59466   ]))
 ```
+
+## text.vocab.GloveVocab
+
+Same interface as `SennaVocab`. The speficiations for the different configurations of pretrained vectors can be found [here](http://nlp.stanford.edu/projects/glove/).
