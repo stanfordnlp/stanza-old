@@ -1,5 +1,5 @@
 __author__ = 'victor'
-from collections import Counter, namedtuple
+from collections import Counter, namedtuple, OrderedDict
 from itertools import izip
 import numpy as np
 import zipfile
@@ -7,65 +7,73 @@ from ..util.resource import get_data_or_download
 
 
 class Vocab(object):
-    """
-    An abstraction for a vocabulary object that maps between words and integer indices.
-    """
+    """Defines a bijection between N words and the integers 0 through N-1."""
 
-    def __init__(self, unk=''):
-        self.word2index = {}
-        self.index2word = []
-        self.counts = Counter()
-        self.unk = unk
+    def __init__(self, unk):
+        """Construct a Vocab object.
 
-        if self.unk:
-            self.add(self.unk, 0)
-
-    def clear_counts(self):
+        Args:
+            unk: a string to represent the unknown word (UNK).
         """
-        removes counts for all tokens
-        """
-        self.counts.clear()
+        self.__word2index = OrderedDict()
+        self.__counts = Counter()
+        self.__unk = unk
+
+        # assign an index for UNK
+        self.add(self.__unk, count=0)
+
+    def __iter__(self):
+        return iter(self.__word2index)
 
     def __repr__(self):
-        return str(self.word2index)
+        """Represent Vocab as a dictionary from words to indices."""
+        return str(self.__word2index)
+
+    def __str__(self):
+        return 'Vocab(%d words)' % len(self.__word2index)
 
     def __len__(self):
-        return len(self.index2word)
+        """Get total number of entries in vocab."""
+        return len(self.__word2index)
 
     def __getitem__(self, word):
-        if self.unk:
-            return self.word2index.get(word, self.word2index[self.unk])
-        else:
-            return self.word2index[word]
+        """Get the index for a word.
+
+        If the word is unknown, the index for UNK is returned.
+        """
+        try:
+            return self.__word2index[word]
+        except KeyError:
+            return self.__word2index[self.__unk]
 
     def __contains__(self, word):
-        return word in self.word2index
+        return word in self.__word2index
 
     def add(self, word, count=1):
-        """
-        add a word to the vocabulary and return its index
-        """
-        if word not in self.word2index:
-            self.word2index[word] = len(self)
-            self.index2word.append(word)
-        self.counts[word] += count
-        return self.word2index[word]
+        """Add a word to the vocabulary and return its index.
 
-    def words2indices(self, words, add=False):
+        Also, updates the counts for a word.
+
+        WARNING: this function assumes that if the Vocab currently has N words, then
+        there is a perfect bijection between these N words and the integers 0 through N-1.
         """
-        converts a list of words into a list of indices. If `add` is `True`
-        then unknown words will be added to the vocabulary
-        """
-        if add:
-            return [self.add(w) for w in words]
-        else:
-            return [self[w] for w in words]
+        if word not in self.__word2index:
+            self.__word2index[word] = len(self.__word2index)
+        self.__counts[word] += count
+        return self.__word2index[word]
+
+    def update(self, words):
+        """Add an iterable of words to the Vocabulary."""
+        return [self.add(w) for w in words]
+
+    def words2indices(self, words):
+        """Convert a list of words into a list of indices."""
+        return [self[w] for w in words]
 
     def indices2words(self, indices):
-        """
-        converts a list of indices into a list of words.
-        """
-        return [self.index2word[i] for i in indices]
+        """Converts a list of indices into a list of words."""
+        index2word = self.__word2index.keys()  # works because word2index is an OrderedDict
+        return [index2word[i] for i in indices]
 
     def prune_rares(self, cutoff=2):
         """
@@ -73,27 +81,71 @@ class Vocab(object):
         with words occurring less than `cutoff` times removed. Note that
         the indices in the new `Vocab` will be remapped (because rare
         words will have been removed).
+
+        NOTE: UNK is never pruned.
         """
-        v = self.__class__(unk=self.unk)  # use __class__ to support subclasses
-        for w in self.index2word:
-            if self.counts[w] >= cutoff or w == self.unk:  # don't remove unk
-                v.add(w, count=self.counts[w])
+        v = self.__class__(unk=self.__unk)  # use __class__ to support subclasses
+        for w in self.__word2index:
+            if self.__counts[w] >= cutoff or w == self.__unk:  # don't remove unk
+                v.add(w, count=self.__counts[w])
         return v
 
     def sort_by_decreasing_count(self):
+        """Return a **new** `Vocab` object that is ordered by decreasing count.
+
+        The word at index 1 will be most common, the word at index 2 will be
+        next most common, and so on.
+
+        NOTE: UNK will remain at index 0, regardless of its frequency.
         """
-        returns a **new** `Vocab` object that is ordered by decreasing count.
-        That is, the word at index 0 is the most common and so forth. If unknown
-        is supported, then the most common word is at index 1 and `unk` remains
-        in index 0.
-        """
-        v = self.__class__(unk=self.unk)  # use __class__ to support subclasses
-        if self.unk:
-            v.add(self.unk, count=self.counts[self.unk])
-        for word, count in self.counts.most_common():
-            if word != self.unk:
+        v = self.__class__(unk=self.__unk)  # use __class__ to support subclasses
+
+        # UNK gets index 0
+        v.add(self.__unk, count=self.__counts[self.__unk])
+
+        for word, count in self.__counts.most_common():
+            if word != self.__unk:
                 v.add(word, count=count)
         return v
+
+    def clear_counts(self):
+        """Removes counts for all tokens."""
+        self.__counts.clear()
+        # TODO: this removes the entries too, rather than setting them to 0
+
+    @classmethod
+    def from_dict(cls, word2index, unk):
+        """Create Vocab from an existing string to integer dictionary.
+
+        All counts are set to 0.
+
+        Args:
+            word2index: a dictionary representing a bijection from N words to the integers 0 through N-1.
+                UNK must be assigned the 0 index.
+            unk: the string representing unk in word2index.
+        """
+        try:
+            if word2index[unk] != 0:
+                raise ValueError('unk must be assigned index 0')
+        except KeyError:
+            raise ValueError('word2index must have an entry for unk.')
+
+        # check that word2index is a bijection
+        vals = set(word2index.values())  # unique indices
+        n = len(vals)
+
+        bijection = (len(word2index) == n) and (vals == set(range(n)))
+        if not bijection:
+            raise ValueError('word2index is not a bijection between N words and the integers 0 through N-1.')
+
+        # reverse the dictionary
+        index2word = {idx: word for word, idx in word2index.iteritems()}
+
+        vocab = cls(unk=unk)
+        for i in xrange(n):
+            vocab.add(index2word[i])
+
+        return vocab
 
 
 class EmbeddedVocab(Vocab):
