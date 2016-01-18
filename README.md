@@ -10,14 +10,15 @@ Stanza is the Stanford NLP group’s shared repository for Python code. We curre
     - a tool for interacting with an already running job via edits to a text file
 - **an API for calling CoreNLP**
 
-(More detailed plans in this [Google Doc](https://docs.google.com/document/d/1tD0v8hNNilusNq632tYKNUn1g3Kfgu5dGNOtD9MA94Q/edit))
+Stanza is still in early development. Interfaces and code organization will probably change substantially over the next few months. However, you can still benefit from useful code in Stanza right now by just copy-pasting parts you need.
+
+## For Stanford NLP members
 
 Stanza is not meant to include every research project the group undertakes. If you have a standalone project that you would like to share with other people in the group, you can:
 
 - request your own private repo under the [stanfordnlp GitHub account](https://github.com/stanfordnlp).
 - share your code on [CodaLab](https://codalab.stanford.edu/).
 
-Stanza is still in early development. Interfaces and code organization will probably change substantially over the next few months. However, you can still benefit from useful code in Stanza right now by just copy-pasting parts you need.
 
 - **To request or discuss additional functionality, open a GitHub issue.**
 - To contribute code, make a pull request.
