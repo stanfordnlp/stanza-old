@@ -160,7 +160,7 @@ class EmbeddedVocab(Vocab):
     def backfill_unk_emb(self, E, filled_words):
         if self.unk:
             unk_emb = E[self.word2index[self.unk]]
-            for i, word in enumerate(self.index2word):
+            for i, word in enumerate(self):
                 if word not in filled_words:
                     E[i] = unk_emb
 
