@@ -75,6 +75,10 @@ class Vocab(object):
         index2word = self.__word2index.keys()  # works because word2index is an OrderedDict
         return [index2word[i] for i in indices]
 
+    @property
+    def counts(self):
+        return self.__counts
+
     def prune_rares(self, cutoff=2):
         """
         returns a **new** `Vocab` object that is similar to this one but
