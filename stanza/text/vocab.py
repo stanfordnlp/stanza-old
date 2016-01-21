@@ -7,13 +7,16 @@ from ..util.resource import get_data_or_download
 
 
 class Vocab(object):
-    """Defines a bijection between N words and the integers 0 through N-1."""
+    """Defines a bijection between N words and the integers 0 through N-1.
+
+    UNK is always represented by the 0 index.
+    """
 
     def __init__(self, unk):
         """Construct a Vocab object.
 
         Args:
-            unk: a string to represent the unknown word (UNK).
+            unk: a string to represent the unknown word (UNK). It is always represented by the 0 index.
         """
         self.__word2index = OrderedDict()
         self.__counts = Counter()
@@ -33,7 +36,7 @@ class Vocab(object):
         return 'Vocab(%d words)' % len(self.__word2index)
 
     def __len__(self):
-        """Get total number of entries in vocab."""
+        """Get total number of entries in vocab (including UNK)."""
         return len(self.__word2index)
 
     def __getitem__(self, word):
