@@ -37,7 +37,7 @@ To use the package, import it in your python code. An example would be:
 
 ```
 from stanza.text.vocab import Vocab
-v = Vocab()
+v = Vocab('UNK')
 ```
 
 ## Development Guide
