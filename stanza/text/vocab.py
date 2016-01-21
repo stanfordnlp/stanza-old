@@ -198,7 +198,7 @@ class SennaVocab(EmbeddedVocab):
             w, e = word_emb
             if w in self:
                 seen += [w]
-                E[self.word2index[w]] = e
+                E[self[w]] = e
         self.backfill_unk_emb(E, set(seen))
         return E
 
@@ -245,6 +245,6 @@ class GloveVocab(EmbeddedVocab):
                     word = toks[0]
                     if word in self:
                         seen += [word]
-                        E[self.word2index[word]] = np.array([float(w) for w in toks[1:]], dtype=dtype)
+                        E[self[word]] = np.array([float(w) for w in toks[1:]], dtype=dtype)
             self.backfill_unk_emb(E, set(seen))
             return E
