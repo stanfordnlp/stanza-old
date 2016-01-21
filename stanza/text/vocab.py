@@ -18,36 +18,36 @@ class Vocab(object):
         Args:
             unk: a string to represent the unknown word (UNK). It is always represented by the 0 index.
         """
-        self.__word2index = OrderedDict()
-        self.__counts = Counter()
-        self.__unk = unk
+        self._word2index = OrderedDict()
+        self._counts = Counter()
+        self._unk = unk
 
         # assign an index for UNK
-        self.add(self.__unk, count=0)
+        self.add(self._unk, count=0)
 
     def __iter__(self):
-        return iter(self.__word2index)
+        return iter(self._word2index)
 
     def __repr__(self):
         """Represent Vocab as a dictionary from words to indices."""
-        return str(self.__word2index)
+        return str(self._word2index)
 
     def __str__(self):
-        return 'Vocab(%d words)' % len(self.__word2index)
+        return 'Vocab(%d words)' % len(self._word2index)
 
     def __len__(self):
         """Get total number of entries in vocab (including UNK)."""
-        return len(self.__word2index)
+        return len(self._word2index)
 
     def __getitem__(self, word):
         """Get the index for a word.
 
         If the word is unknown, the index for UNK is returned.
         """
-        return self.__word2index.get(word, 0)
+        return self._word2index.get(word, 0)
 
     def __contains__(self, word):
-        return word in self.__word2index
+        return word in self._word2index
 
     def add(self, word, count=1):
         """Add a word to the vocabulary and return its index.
@@ -57,10 +57,10 @@ class Vocab(object):
         WARNING: this function assumes that if the Vocab currently has N words, then
         there is a perfect bijection between these N words and the integers 0 through N-1.
         """
-        if word not in self.__word2index:
-            self.__word2index[word] = len(self.__word2index)
-        self.__counts[word] += count
-        return self.__word2index[word]
+        if word not in self._word2index:
+            self._word2index[word] = len(self._word2index)
+        self._counts[word] += count
+        return self._word2index[word]
 
     def update(self, words):
         """Add an iterable of words to the Vocabulary."""
@@ -72,12 +72,12 @@ class Vocab(object):
 
     def indices2words(self, indices):
         """Converts a list of indices into a list of words."""
-        index2word = self.__word2index.keys()  # works because word2index is an OrderedDict
+        index2word = self._word2index.keys()  # works because word2index is an OrderedDict
         return [index2word[i] for i in indices]
 
     @property
     def counts(self):
-        return self.__counts
+        return self._counts
 
     def prune_rares(self, cutoff=2):
         """
@@ -88,10 +88,10 @@ class Vocab(object):
 
         NOTE: UNK is never pruned.
         """
-        v = self.__class__(unk=self.__unk)  # use __class__ to support subclasses
-        for w in self.__word2index:
-            if self.__counts[w] >= cutoff or w == self.__unk:  # don't remove unk
-                v.add(w, count=self.__counts[w])
+        v = self.__class__(unk=self._unk)  # use __class__ to support subclasses
+        for w in self._word2index:
+            if self._counts[w] >= cutoff or w == self._unk:  # don't remove unk
+                v.add(w, count=self._counts[w])
         return v
 
     def sort_by_decreasing_count(self):
@@ -102,19 +102,19 @@ class Vocab(object):
 
         NOTE: UNK will remain at index 0, regardless of its frequency.
         """
-        v = self.__class__(unk=self.__unk)  # use __class__ to support subclasses
+        v = self.__class__(unk=self._unk)  # use __class__ to support subclasses
 
         # UNK gets index 0
-        v.add(self.__unk, count=self.__counts[self.__unk])
+        v.add(self._unk, count=self._counts[self._unk])
 
-        for word, count in self.__counts.most_common():
-            if word != self.__unk:
+        for word, count in self._counts.most_common():
+            if word != self._unk:
                 v.add(word, count=count)
         return v
 
     def clear_counts(self):
         """Removes counts for all tokens."""
-        self.__counts.clear()
+        self._counts.clear()
         # TODO: this removes the entries too, rather than setting them to 0
 
     @classmethod
@@ -158,8 +158,7 @@ class EmbeddedVocab(Vocab):
         raise NotImplementedError()
 
     def backfill_unk_emb(self, E, filled_words):
-        if self.unk:
-            unk_emb = E[self.word2index[self.unk]]
+            unk_emb = E[self[self._unk]]
             for i, word in enumerate(self):
                 if word not in filled_words:
                     E[i] = unk_emb
