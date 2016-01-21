@@ -44,10 +44,7 @@ class Vocab(object):
 
         If the word is unknown, the index for UNK is returned.
         """
-        try:
-            return self.__word2index[word]
-        except KeyError:
-            return self.__word2index[self.__unk]
+        return self.__word2index.get(word, 0)
 
     def __contains__(self, word):
         return word in self.__word2index
