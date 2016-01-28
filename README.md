@@ -1,5 +1,7 @@
 # Stanza
 
+[![Build Status](https://travis-ci.org/stanfordnlp/stanza.svg?branch=master)](https://travis-ci.org/stanfordnlp/stanza)
+
 Stanza is the Stanford NLP group’s shared repository for Python code. We currently plan to offer:
 
 - **common objects used in NLP, e.g.**
