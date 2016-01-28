@@ -29,7 +29,7 @@ install:
 # env:
 #   - THEANO_FLAGS='floatX=float32'
 # Run test
-script: python setup.py all_test
+script: python setup.py test
 # only integrate the master branch
 branches:
   only:
