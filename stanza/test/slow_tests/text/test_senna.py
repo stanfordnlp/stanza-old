@@ -18,4 +18,4 @@ class TestSenna(TestCase):
         0.350751 -0.351293 1.77318 -0.723457 -0.13806 -1.47247 0.541779 -2.57005 -0.227714 -0.817816 -0.552209
         0.360149 -0.10278 -0.36428 -0.64853
         """.split()])
-        self.assertTrue(np.allclose(e_exclamation, E[v.word2index["!"]]))
+        self.assertTrue(np.allclose(e_exclamation, E[v["!"]]))

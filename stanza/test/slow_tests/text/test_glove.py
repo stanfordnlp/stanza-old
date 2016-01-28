@@ -17,4 +17,4 @@ class TestGlove(TestCase):
         -0.50818 -0.63459 0.33889 0.28416 -0.2034 -1.2338 0.46715 0.78858
         """.split() if e])
         E = v.get_embeddings()
-        self.assertTrue(np.allclose(e_exclamation, E[v.word2index["!"]]))
+        self.assertTrue(np.allclose(e_exclamation, E[v["!"]]))
