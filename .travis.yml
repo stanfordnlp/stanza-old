@@ -34,7 +34,6 @@ script: python setup.py all_test
 branches:
   only:
     - master
-    - unstable
 # web hooks (eg. gitter)
 notifications:
   # slack: stanfordnlp:<SLACK CODE>  # we don't have this integration set up
