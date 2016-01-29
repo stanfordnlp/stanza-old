@@ -2,6 +2,7 @@ __author__ = 'victor'
 from collections import Counter, namedtuple, OrderedDict
 from itertools import izip
 import numpy as np
+from copy import deepcopy
 import zipfile
 from ..util.resource import get_data_or_download
 
@@ -23,6 +24,14 @@ class Vocab(object):
         self._unk = unk
 
         # assign an index for UNK
+        self.add(self._unk, count=0)
+
+    def clear(self):
+        """
+        Resets all mappings and counts. The unk token is retained.
+        """
+        self._word2index.clear()
+        self._counts.clear()
         self.add(self._unk, count=0)
 
     def __iter__(self):
@@ -88,7 +97,9 @@ class Vocab(object):
 
         NOTE: UNK is never pruned.
         """
-        v = self.__class__(unk=self._unk)  # use __class__ to support subclasses
+        # make a deep copy and reset its contents
+        v = deepcopy(self)
+        v.clear()
         for w in self._word2index:
             if self._counts[w] >= cutoff or w == self._unk:  # don't remove unk
                 v.add(w, count=self._counts[w])
@@ -216,13 +227,14 @@ class GloveVocab(EmbeddedVocab):
                                            [50, 100, 200, 300], '822MB', '6B token wikipedia 2014 + gigaword 5'),
     }
 
-    def __init__(self, unk='', corpus='common_crawl_48', n_dim=300):
-        super(GloveVocab, self).__init__(unk)
+    def __init__(self, unk='UNKNOWN'):
+        super(GloveVocab, self).__init__(unk=unk)
+
+    def get_embeddings(self, rand=None, dtype='float32', corpus='common_crawl_48', n_dim=300):
         assert corpus in self.settings, '{} not in supported corpus {}'.format(corpus, self.settings.keys())
         self.n_dim, self.corpus, self.setting = n_dim, corpus, self.settings[corpus]
         assert n_dim in self.setting.n_dims, '{} not in supported dimensions {}'.format(n_dim, self.setting.n_dims)
 
-    def get_embeddings(self, rand=None, dtype='float32'):
         rand = rand if rand else lambda shape: np.random.uniform(-0.1, 0.1, size=shape)
         zip_file = get_data_or_download('glove', '{}.zip'.format(self.corpus), self.setting.url, size=self.setting.size)
 

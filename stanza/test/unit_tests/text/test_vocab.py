@@ -1,7 +1,7 @@
 __author__ = 'victor'
 
 from unittest import TestCase
-from stanza.text.vocab import Vocab, SennaVocab
+from stanza.text.vocab import Vocab, SennaVocab, GloveVocab
 
 
 class TestVocab(TestCase):
@@ -57,3 +57,9 @@ class TestSenna(TestVocab):
 
     def setUp(self):
         self.Vocab = SennaVocab
+
+
+class TestGlove(TestVocab):
+
+    def setUp(self):
+        self.Vocab = GloveVocab
