@@ -1,11 +1,14 @@
 import atexit
+import numpy as np
 import png
 import struct
+import sys
 import time
+from itertools import izip
 from StringIO import StringIO
 
 from tensorflow.core.util.event_pb2 import Event
-from tensorflow.core.framework.summary_pb2 import Summary
+from tensorflow.core.framework.summary_pb2 import Summary, HistogramProto
 
 from .crc32c import crc as crc32
 
@@ -50,6 +53,12 @@ class SummaryWriter(object):
         summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(val))])
         self.add_event(step, summary)
 
+    def log_histogram(self, step, tag, val):
+        hist = Histogram()
+        hist.add(val)
+        summary = Summary(value=[Summary.Value(tag=tag, histo=hist.encode_to_proto())])
+        self.add_event(step, summary)
+
     def add_event(self, step, summary):
         t = time.time()
         e = Event(wall_time=t, step=step, summary=summary)
@@ -63,6 +72,89 @@ class SummaryWriter(object):
             with open(self.filename, 'ab') as outfile:
                 write_events(outfile, self.queue)
                 del self.queue[:]
+
+
+POS_BUCKETS = 1e-12 * 1.1 ** np.arange(0, 776.)
+POS_BUCKETS[-1] = sys.float_info.max
+DEFAULT_BUCKETS = np.array(list(reversed(-POS_BUCKETS)) + [0.0] + list(POS_BUCKETS))
+
+
+class Histogram(object):
+    '''
+    Stores statistics about the values of an array as counts of values
+    falling into buckets on a logarithmic scale.
+
+    Ported from the TensorFlow C++ class:
+    https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/lib/histogram/histogram.cc
+
+    >>> h = Histogram([-2.0, -1.0, 0.0, 1.0, 2.0])
+    >>> h.add([-1.5, 0.5, 0.25])
+    >>> print(str(h.encode_to_proto()))
+    min: -1.5
+    max: 0.5
+    num: 3
+    sum: -0.75
+    sum_squares: 2.5625
+    bucket_limit: -2.0
+    bucket_limit: -1.0
+    bucket_limit: 0.0
+    bucket_limit: 1.0
+    bucket: 0.0
+    bucket: 1.0
+    bucket: 0.0
+    bucket: 2.0
+    bucket: 0.0
+    <BLANKLINE>
+    '''
+    def __init__(self, bucket_limits=None):
+        if bucket_limits is None:
+            bucket_limits = DEFAULT_BUCKETS
+        self.bucket_limits = bucket_limits
+        self.clear()
+
+    def clear(self):
+        self.min = self.bucket_limits[-1]
+        self.max = self.bucket_limits[0]
+        self.num = 0
+        self.sum = 0.0
+        self.sum_squares = 0.0
+        self.buckets = np.zeros((len(self.bucket_limits) + 1,))
+
+    def add(self, arr):
+        if not isinstance(arr, np.ndarray):
+            arr = np.array(arr)
+        arr = arr.flatten()
+
+        self.min = min(self.min, arr.min())
+        self.max = max(self.max, arr.max())
+        self.sum += arr.sum()
+        self.num += len(arr)
+        self.sum_squares += (arr ** 2).sum()
+
+        indices = np.searchsorted(self.bucket_limits, arr)
+        new_counts = np.bincount(indices, minlength=self.buckets.shape[0])
+        self.buckets += new_counts
+
+    def encode_to_proto(self):
+        p = HistogramProto()
+        p.min = self.min
+        p.max = self.max
+        p.num = self.num
+        p.sum = self.sum
+        p.sum_squares = self.sum_squares
+
+        bucket_limits = []
+        buckets = []
+        for i, (end, count) in enumerate(izip(self.bucket_limits, self.buckets)):
+            if (count > 0.0 or i >= len(self.bucket_limits) or
+                    self.buckets[i + 1] > 0.0):
+                bucket_limits.append(end)
+                buckets.append(count)
+        buckets.append(self.buckets[-1])
+
+        p.bucket_limit.extend(bucket_limits)
+        p.bucket.extend(buckets)
+        return p
 
 
 class SummaryReaderException(Exception):
