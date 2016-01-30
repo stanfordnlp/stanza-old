@@ -137,20 +137,20 @@ class Histogram(object):
 
     def encode_to_proto(self):
         p = HistogramProto()
-        p.min = self.min
-        p.max = self.max
-        p.num = self.num
-        p.sum = self.sum
-        p.sum_squares = self.sum_squares
+        p.min = float(self.min)
+        p.max = float(self.max)
+        p.num = float(self.num)
+        p.sum = float(self.sum)
+        p.sum_squares = float(self.sum_squares)
 
         bucket_limits = []
         buckets = []
         for i, (end, count) in enumerate(izip(self.bucket_limits, self.buckets)):
             if (count > 0.0 or i >= len(self.bucket_limits) or
                     self.buckets[i + 1] > 0.0):
-                bucket_limits.append(end)
-                buckets.append(count)
-        buckets.append(self.buckets[-1])
+                bucket_limits.append(float(end))
+                buckets.append(float(count))
+        buckets.append(float(self.buckets[-1]))
 
         p.bucket_limit.extend(bucket_limits)
         p.bucket.extend(buckets)
