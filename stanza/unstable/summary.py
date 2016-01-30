@@ -1,3 +1,56 @@
+'''
+>>> fs = patcher('stanza.unstable.summary', '/test'); open = fs.start()
+... # ^ for doctest; ignore
+
+A nearly pure-Python module for logging output to a file in TensorBoard's
+events format. Supports scalars, RGB images and histograms.
+
+>>> writer = SummaryWriter('/test/values.tfevents')
+>>> writer.log_scalar(1, 'universe', 42)
+>>> writer.flush()
+>>> with open('/test/values.tfevents', 'r') as infile:
+...     for event in read_events(infile):
+...         print(event)  # doctest: +ELLIPSIS
+wall_time: ...
+step: 1
+summary {
+  value {
+    tag: "universe"
+    simple_value: 42.0
+  }
+}
+<BLANKLINE>
+
+This module requires a very small subset of TensorFlow to be available for
+importing, consisting of the following compiled protobuf definitions:
+
+    tensorflow/core/
+        framework/
+            attr_value_pb2.py
+            function_pb2.py
+            graph_pb2.py
+            op_def_pb2.py
+            summary_pb2.py
+            tensor_pb2.py
+            tensor_shape_pb2.py
+            types_pb2.py
+        util/
+            event_pb2.py
+
+It also requires a couple of other easy-to-install Python modules:
+
+    pip install -U pypng 'Protobuf>=3.0.0b2'
+
+After an event file is written (it should have 'tfevents' somewhere in its
+name), the file can be read by TensorBoard by running
+
+    tensorboard --logdir="`pwd`"
+
+from the parent directory of the directory containing the events file.
+
+>>> fs.stop()
+... # ^ for doctest; ignore
+'''
 import atexit
 import numpy as np
 import png
@@ -11,10 +64,27 @@ from tensorflow.core.util.event_pb2 import Event
 from tensorflow.core.framework.summary_pb2 import Summary, HistogramProto
 
 from .crc32c import crc as crc32
+from .mockfs import patcher  # NOQA: for doctest
 
 
 class SummaryWriter(object):
     def __init__(self, filename, tick=5.0, max_queue_len=100):
+        '''
+        :param str filename: The path of the events file to be written.
+            The file is truncated during construction of the `SummaryWriter`
+            object.
+        :param float tick: The number of seconds to elapse in between
+            automatically writing queued events out to the file. A write
+            can be forced manually with a call to `flush()`.
+        :param max_queue_len: The maximum number of events to keep queued
+            before the queue is flushed. If more than this number of events
+            accumulate in the queue, they will be flushed even if `tick`
+            seconds have not elapsed.
+
+        Note that event writing is performed synchronously; unlike the
+        TensorFlow SummaryWriter, this module is not run in a separate
+        thread or process.
+        '''
         self.filename = filename
 
         self.tick = tick
@@ -30,6 +100,15 @@ class SummaryWriter(object):
         atexit.register(SummaryWriter.flush, self)
 
     def log_image(self, step, tag, val):
+        '''
+        Write an image event.
+
+        :param int step: Time step (x-axis in TensorBoard graphs)
+        :param str tag: Label for this value
+        :param numpy.ndarray val: Image in RGB format with values from
+            0 to 255; a 3-D array with index order (row, column, channel).
+            `val.shape[-1] == 3`
+        '''
         # TODO: support floating-point tensors, 4-D tensors, grayscale
         if len(val.shape) != 3:
             raise ValueError('`log_image` value should be a 3-D tensor, instead got shape %s' %
@@ -50,10 +129,25 @@ class SummaryWriter(object):
         self.add_event(step, summary)
 
     def log_scalar(self, step, tag, val):
+        '''
+        Write a scalar event.
+
+        :param int step: Time step (x-axis in TensorBoard graphs)
+        :param str tag: Label for this value
+        :param float val: Scalar to graph at this time step (y-axis)
+        '''
         summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(val))])
         self.add_event(step, summary)
 
     def log_histogram(self, step, tag, val):
+        '''
+        Write a histogram event.
+
+        :param int step: Time step (x-axis in TensorBoard graphs)
+        :param str tag: Label for this value
+        :param numpy.ndarray val: Arbitrary-dimensional array containing
+            values to be aggregated in the resulting histogram.
+        '''
         hist = Histogram()
         hist.add(val)
         summary = Summary(value=[Summary.Value(tag=tag, histo=hist.encode_to_proto())])
@@ -68,6 +162,13 @@ class SummaryWriter(object):
             self.last_append = t
 
     def flush(self):
+        '''
+        Force all queued events to be written to the events file.
+        The queue will automatically be flushed at regular time intervals,
+        when it grows too large, and at program exit (with the usual caveats
+        of `atexit`: this won't happen if the program is killed with a
+        signal or `os._exit()`).
+        '''
         if self.queue:
             with open(self.filename, 'ab') as outfile:
                 write_events(outfile, self.queue)
@@ -92,7 +193,7 @@ class Histogram(object):
     >>> print(str(h.encode_to_proto()))
     min: -1.5
     max: 0.5
-    num: 3
+    num: 3.0
     sum: -0.75
     sum_squares: 2.5625
     bucket_limit: -2.0
@@ -167,6 +268,10 @@ def masked_crc(data):
 
 
 def read_events(stream):
+    '''
+    Read and return as a generator a sequence of Event protos from
+    file-like object `stream`.
+    '''
     header_size = struct.calcsize('<QI')
     len_size = struct.calcsize('<Q')
     footer_size = struct.calcsize('<I')
@@ -179,7 +284,6 @@ def read_events(stream):
             raise SummaryReaderException('unexpected EOF (expected a %d-byte header, '
                                          'got %d bytes)' % (header_size, len(header)))
         data_len, len_crc = struct.unpack('<QI', header)
-        print('%d bytes' % data_len)
         len_crc_actual = masked_crc(header[:len_size])
         if len_crc_actual != len_crc:
             raise SummaryReaderException('incorrect length CRC (%d != %d)' %
@@ -203,6 +307,9 @@ def read_events(stream):
 
 
 def write_events(stream, events):
+    '''
+    Write a sequence of Event protos to file-like object `stream`.
+    '''
     for event in events:
         data = event.SerializeToString()
         len_field = struct.pack('<Q', len(data))
