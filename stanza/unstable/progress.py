@@ -11,8 +11,8 @@ and estimating time to completion.
 ...         progress.progress(ex)
 ...     progress.end_task()
 ...
-Repetition 0 of 2 (~0% done, ETA unknown)
-Repetition 0 of 2, Example 0 of 3 (~0% done, ETA unknown)
+Repetition 0 of 2 (~0% done, ETA unknown on ...)
+Repetition 0 of 2, Example 0 of 3 (~0% done, ETA unknown on ...)
 Repetition 0 of 2, Example 1 of 3 (~17% done, ETA ...)
 Repetition 0 of 2, Example 2 of 3 (~33% done, ETA ...)
 Repetition 0 of 2, Example 3 of 3 (~50% done, ETA ...)
@@ -52,7 +52,8 @@ class ProgressMonitor(object):
 
     def progress_report(self):
         now = datetime.datetime.now()
-        if now - self.last_report < self.resolution:
+        if (len(self.task_stack) > 1 or self.task_stack[0] > 0) and \
+                now - self.last_report < self.resolution:
             return
 
         stack_printout = ', '.join('%s %s of %s' % (t.name, t.progress, t.size)
@@ -60,7 +61,8 @@ class ProgressMonitor(object):
 
         frac_done = self.fraction_done()
         if frac_done == 0.0:
-            eta_str = 'unknown'
+            now_str = now.strftime('%c')
+            eta_str = 'unknown on %s' % now_str
         else:
             elapsed = (now - self.start_time)
             estimated_length = elapsed.total_seconds() / frac_done
@@ -86,11 +88,10 @@ class ProgressMonitor(object):
             return self.fraction_done(inner_start, inner_finish, stack[1:])
 
 
-
 Task = namedtuple('Task', ('name', 'size', 'progress'))
 
-
 _global_t = ProgressMonitor(resolution=datetime.timedelta(minutes=1))
+
 
 def start_task(name, size):
     _global_t.start_task(name, size)
