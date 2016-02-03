@@ -5,7 +5,8 @@ import numpy as np
 from . import config
 
 
-def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None):
+def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
+             write_data=False):
     '''
     Evaluate `learner` on the instances in `eval_data` according to each
     metric in `metric`, and return a dictionary summarizing the values of
@@ -25,6 +26,9 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None):
     :type metrics: Iterable(function(eval_data: list(instance.Instance),
                                      predictions: list(output_type),
                                      scores: list(float)) -> list(float))
+
+    :param bool write_data: If `True`, write out the instances in `eval_data`
+        as JSON, one per line, to the file `data.<split_id>.jsons`.
     '''
     if metric_names is None:
         metric_names = [
@@ -34,6 +38,10 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None):
         ]
 
     split_prefix = split_id + '.' if split_id else ''
+
+    if write_data:
+        config.dump([inst.__dict__ for inst in eval_data],
+                    'data.%sjsons' % split_prefix, lines=True)
 
     results = {split_prefix + 'num_params': learner.num_params}
 
