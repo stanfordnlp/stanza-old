@@ -118,7 +118,7 @@ class SummaryWriter(object):
                              'instead got shape %s' %
                              (val.shape,))
         fakefile = StringIO()
-        png.Writer(size=val.shape[:2]).write(
+        png.Writer(size=(val.shape[1], val.shape[0])).write(
             fakefile, val.reshape(val.shape[0], val.shape[1] * val.shape[2]))
         encoded = fakefile.getvalue()
         # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/core/framework/summary.proto
