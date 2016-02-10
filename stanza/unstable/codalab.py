@@ -210,13 +210,6 @@ def in_codalab():
     return platform.system() != 'Darwin'
 
 
-if in_codalab():
-    add_to_sys_path('code')
-    configure_matplotlib()
-    from mru import cfg
-    cfg.data_dir = ''
-
-
 def launch_job(job_name, cmd=None,
                code_dir=None, excludes='*.ipynb .git .ipynb_checkpoints', dependencies=tuple(),
                queue='john', image='codalab/python', memory='18g',
