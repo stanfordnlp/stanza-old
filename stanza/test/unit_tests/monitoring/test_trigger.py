@@ -1,7 +1,7 @@
-__author__ = 'victor'
+__author__ = 'victor, kelvinguu'
 
 from unittest import TestCase
-from stanza.monitoring.trigger import ThresholdTrigger, SlopeThresholdTrigger, PatienceTrigger
+from stanza.monitoring.trigger import ThresholdTrigger, SlopeTrigger, PatienceTrigger
 
 
 class TestEarlyStopping(TestCase):
@@ -25,13 +25,9 @@ class TestEarlyStopping(TestCase):
         self.assertTrue(e(10))
 
     def test_slope_threshold(self):
-        e = SlopeThresholdTrigger(min_thresh=-1, max_thresh=1, time=2)
-        self.assertFalse(e(1))
-        self.assertFalse(e(2))
-        self.assertFalse(e(1.5))
-        self.assertTrue(e(0.4))
-
-        e = SlopeThresholdTrigger(min_thresh=-1, max_thresh=1, time=2)
-        self.assertFalse(e(1))
-        self.assertFalse(e(2))
-        self.assertTrue(e(3.1))
+        e = SlopeTrigger(range=(-1, 1), window_size=2)
+        self.assertFalse(e(1))  # not enough points
+        self.assertTrue(e(2))  # slope = 1
+        self.assertFalse(e(4))  # slope 2 > 1
+        self.assertFalse(e(2))  # slope -2 < -1
+        self.assertTrue(e(2))  # slope = 0

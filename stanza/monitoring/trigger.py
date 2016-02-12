@@ -1,4 +1,6 @@
-__author__ = 'victor'
+from collections import deque
+
+__author__ = 'victor, kelvinguu'
 import numpy as np
 
 
@@ -69,38 +71,36 @@ class PatienceTrigger(MetricTrigger, StatefulTriggerMixin):
         self.time_since_best = 0
 
 
-class SlopeThresholdTrigger(MetricTrigger, StatefulTriggerMixin):
+class SlopeTrigger(MetricTrigger, StatefulTriggerMixin):
     """
-    Triggers when the slope of the value in the most recent time window
-    exceeds the min threshold or the max threshold. The width of the window is denoted
-    by the time parameter. The slope is approximated via a least squares fit on the
-    data points in the window.
-    """
+    Triggers when the slope of the values in the most recent time window
+    falls within the specified range (inclusive).
 
-    def __init__(self, min_thresh=-float('inf'), max_thresh=float('inf'), time=5):
-        super(SlopeThresholdTrigger, self).__init__()
-        self.min = min_thresh
-        self.max = max_thresh
-        self.points_seen = 0
-        self.time = time
-        self.x = np.array(range(time))
-        self.y = np.zeros(time)
-        # this is for framing the slope interpolation as least squares regression
-        self.A = np.vstack([self.x, np.ones(len(self.x))]).T
+    The slope is approximated with a least squares fit on the data points
+    in the window.
+
+    Data points passed to the slope trigger are assumed to each be one
+    unit apart on the x axis.
+    """
+    def __init__(self, range, window_size=10):
+        self.range = range
+        self.window_size = window_size
+        self.vals = deque(maxlen=window_size)
 
     def __call__(self, new_value):
-        # shift time by 1
-        self.y[:-1] = self.y[1:]
-        self.y[-1] = new_value
+        self.vals.append(new_value)
 
-        if self.points_seen < self.time-1:
-            self.points_seen += 1
-            return False # not enough data points to interpolate
+        # not enough points to robustly estimate slope
+        if len(self.vals) < self.window_size:
+            return False
 
-        # x is time, y is values. We interpolate the m and c in y = mx + c
-        m, c = np.linalg.lstsq(self.A, self.y)[0]
-        return m < self.min or m > self.max
+        return self.range[0] <= self.slope() <= self.range[1]
+
+    def slope(self):
+        x = range(self.window_size)
+        y = self.vals
+        slope, bias = np.polyfit(x, y, 1)
+        return slope
 
     def reset(self):
-        self.points_seen = 0
-        self.y.fill(0)
+        self.vals = deque(maxlen=self.window_size)
