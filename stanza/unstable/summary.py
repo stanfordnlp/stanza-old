@@ -66,6 +66,8 @@ from tensorflow.core.framework.summary_pb2 import Summary, HistogramProto
 from .crc32c import crc as crc32
 from .mockfs import patcher  # NOQA: for doctest
 
+open = open  # for doctest
+
 
 class SummaryWriter(object):
     def __init__(self, filename, tick=5.0, max_queue_len=100):
