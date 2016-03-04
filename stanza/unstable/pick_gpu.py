@@ -148,10 +148,11 @@ def bind_theano(device=None, max_usage=USAGE_THRESHOLD, verbose=True):
     Theano has no way of switching devices after it is bound (which happens
     on import).
     '''
-    import theano.sandbox.cuda
     if device is None:
         device = best_gpu(max_usage, verbose=verbose)
-    theano.sandbox.cuda.use(device)
+    if device and device != 'cpu':
+        import theano.sandbox.cuda
+        theano.sandbox.cuda.use(device)
 
 
 if __name__ == '__main__':
