@@ -1,12 +1,14 @@
 import cPickle as pickle
 
+from . import evaluate, output
+
 
 class Learner(object):
     def __init__(self):
         self._using_default_separate = False
         self._using_default_combined = False
 
-    def train(self, training_instances):
+    def train(self, training_instances, validation_instances=None, metrics=None):
         '''
         Fit a model on training data.
 
@@ -15,9 +17,42 @@ class Learner(object):
             populated.
         :type training_instances: list(instance.Instance)
 
+        :param validation_instances: The data to use to validate the model.
+            Good practice says this should be held out (separate from the
+            training set), but this API does not require that to be the case.
+        :type validation_instances: list(instance.Instance)
+
+        :param metrics: Functions like those found in the `metrics` module
+            to use in validation. (These are not necessarily the objective function
+            for training; subclasses define their own training objectives.)
+        :type metrics: list(function)
+
         :returns: None
         '''
         raise NotImplementedError
+
+    def validate(self, validation_instances, metrics, iteration=None):
+        '''
+        Evaluate this model on `validation_instances` during training and
+        output a report.
+
+        :param validation_instances: The data to use to validate the model.
+        :type validation_instances: list(instance.Instance)
+
+        :param metrics: Functions like those found in the `metrics` module
+            for quantifying the performance of the learner.
+        :type metrics: list(function)
+
+        :param iteration: A label (anything with a sensible `str()` conversion)
+            identifying the current iteration in output.
+        '''
+        if not validation_instances or not metrics:
+            return {}
+        split_id = 'val%s' % iteration if iteration is not None else 'val'
+        train_results = evaluate.evaluate(self, validation_instances,
+                                          metrics=metrics, split_id=split_id)
+        output.output_results(train_results, split_id)
+        return train_results
 
     def predict(self, eval_instances, random=False, verbosity=0):
         '''
