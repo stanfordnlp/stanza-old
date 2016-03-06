@@ -85,7 +85,21 @@ def get_options_parser():
 _options = None
 
 
-def options(allow_partial=False):
+def options(allow_partial=False, read=False):
+    '''
+    Get the object containing the values of the parsed command line options.
+
+    :param bool allow_partial: If `True`, ignore unrecognized arguments and allow
+        the options to be re-parsed next time `options` is called. This
+        also suppresses overwrite checking (the check is performed the first
+        time `options` is called with `allow_partial=False`).
+    :param bool read: If `True`, do not create or overwrite a `config.json`
+        file, and do not check whether such file already exists. Use for scripts
+        that read from the run directory rather than/in addition to writing to it.
+
+    :return argparse.Namespace: An object storing the values of the options specified
+        to the parser returned by `get_options_parser()`.
+    '''
     global _options
 
     if allow_partial:
@@ -100,18 +114,19 @@ def options(allow_partial=False):
                                      help='show this help message and exit')
         _options = _options_parser.parse_args()
         if _options.run_dir:
-            mkdirp(_options.run_dir, overwrite=_options.overwrite)
+            mkdirp(_options.run_dir, overwrite=_options.overwrite or read)
 
-        options_dump = vars(_options)
-        # People should be able to rerun an experiment with -C config.json safely.
-        # Don't include the overwrite option, since using a config from an experiment
-        # done with -O should still require passing -O for it to be overwritten again.
-        del options_dump['overwrite']
-        # And don't write the name of the other config file in this new one! It's
-        # probably harmless (config file interpretation can't be chained with the
-        # config option), but still confusing.
-        del options_dump['config']
-        dump_pretty(options_dump, 'config.json')
+        if not read:
+            options_dump = vars(_options)
+            # People should be able to rerun an experiment with -C config.json safely.
+            # Don't include the overwrite option, since using a config from an experiment
+            # done with -O should still require passing -O for it to be overwritten again.
+            del options_dump['overwrite']
+            # And don't write the name of the other config file in this new one! It's
+            # probably harmless (config file interpretation can't be chained with the
+            # config option), but still confusing.
+            del options_dump['config']
+            dump_pretty(options_dump, 'config.json')
     return _options
 
 
