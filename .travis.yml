@@ -40,6 +40,8 @@ notifications:
       rooms:
       - stanfordai:QUNQBLEeKeedi6NikqISPA9d#stanza
       - stanfordnlp:aAWRsBOxoolXY8vxXEJ8NkTV#stanza
+      on_success: never
+      on_failure: always
   
   # webhooks:
   #   on_success: change  # options: [always|never|change] default: always
