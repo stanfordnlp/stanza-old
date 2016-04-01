@@ -52,37 +52,75 @@ class Dataset(object):
         The CONLL file must have a tab delimited header, for example:
 
         ```
-        # Name  SSN
-        Alice   12345
-        Bob     123
+        # description   tags
+        Alice
+        Hello   t1
+        my      t2
+        name    t3
+        is      t4
+        alice   t5
+
+        Bob
+        I'm     t1
+        bob     t2
         ```
+
+        Here, the fields are 'description' and 'tags'. The first instance has the label 'Alice' and the
+        description ['Hello', 'my', 'name', 'is', 'alice'] and the tags ['t1', 't2', 't3', 't4', 't5'].
+        The second instance has the label 'Bob' and the description ["I'm", 'bob'] and the tags ['t1', 't2'].
 
         :param fname: The CONLL formatted file from which to load the dataset
         :return: loaded Dataset instance
         """
+        def process_cache(cache, fields):
+            cache = [l.split() for l in cache if l]
+            if not cache:
+                return None
+            fields['label'].append(cache[0])
+            instance = {k: [] for k in fields if k != 'label'}
+            for l in cache[1:]:
+                for i, (k, v) in enumerate(instance.items()):
+                    if k != 'label':
+                        v.append(None if l[i] == '-' else l[i])
+            for k, v in instance.items():
+                fields[k].append(v)
+
+        cache = []
+
         with open(fname) as f:
             header = f.next().strip().split('\t')
             header[0] = header[0].lstrip('# ')
             fields = OrderedDict([(head, []) for head in header])
+            fields['label'] = []
             for line in f:
-                if not line.strip():
-                    continue
-                rows = [None if e == '-' else e for e in line.strip().split('\t')]
-                for i, k in enumerate(fields.keys()):
-                    fields[k].append(rows[i])
+                line = line.strip()
+                if line:
+                    cache.append(line)
+                else:
+                    # met empty line, process cache
+                    process_cache(cache, fields)
+                    cache = []
+            if cache:
+                process_cache(cache, fields)
         return cls(fields)
 
     def write_conll(self, fname):
         """
         Serializes the dataset in CONLL format to fname
         """
+        if 'label' not in self.fields:
+            raise InvalidFieldsException("dataset is not in CONLL format: missing label field")
+
+        def instance_to_conll(inst):
+            tab = [v for k, v in inst.items() if k != 'label']
+            return '{}\n{}'.format(inst['label'], '\n'.join(['\t'.join([e for e in row]) for row in zip(*tab)]))
+
         with open(fname, 'wb') as f:
-            f.write('# {}\n'.format('\t'.join(self.fields.keys())))
+            f.write('# {}'.format('\t'.join([k for k in self.fields if k != 'label'])))
             for i, d in enumerate(self):
-                line = '\t'.join(['-' if v is None else str(v) for v in d.values()])
+                f.write('\n{}'.format(instance_to_conll(d)))
                 if i != len(self) - 1:
-                    line += '\n'
-                f.write(line)
+                    f.write('\n')
 
     def convert(self, converters, in_place=False):
         """
