@@ -19,7 +19,7 @@ Stanza is still in early development. Interfaces and code organization will prob
 
 ## Documentation
 
-Documentation is hosted on readthedocs at []().
+Documentation is hosted on readthedocs at [http://stanford-nlp.readthedocs.org/en/latest/](http://stanford-nlp.readthedocs.org/en/latest/).
 
 ## For Stanford NLP members
 
