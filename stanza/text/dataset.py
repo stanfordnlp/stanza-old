@@ -49,25 +49,23 @@ class Dataset(object):
     @classmethod
     def load_conll(cls, fname):
         """
-        The CONLL file must have a tab delimited header, for example:
+        The CONLL file must have a tab delimited header, for example::
 
-        ```
-        # description   tags
-        Alice
-        Hello   t1
-        my      t2
-        name    t3
-        is      t4
-        alice   t5
+            # description   tags
+            Alice
+            Hello   t1
+            my      t2
+            name    t3
+            is      t4
+            alice   t5
 
-        Bob
-        I'm     t1
-        bob     t2
-        ```
+            Bob
+            I'm     t1
+            bob     t2
 
-        Here, the fields are 'description' and 'tags'. The first instance has the label 'Alice' and the
-        description ['Hello', 'my', 'name', 'is', 'alice'] and the tags ['t1', 't2', 't3', 't4', 't5'].
-        The second instance has the label 'Bob' and the description ["I'm", 'bob'] and the tags ['t1', 't2'].
+        Here, the fields are `description` and `tags`. The first instance has the label `Alice` and the
+        description `['Hello', 'my', 'name', 'is', 'alice']` and the tags `['t1', 't2', 't3', 't4', 't5']`.
+        The second instance has the label `Bob` and the description `["I'm", 'bob']` and the tags `['t1', 't2']`.
 
         :param fname: The CONLL formatted file from which to load the dataset
         :return: loaded Dataset instance
