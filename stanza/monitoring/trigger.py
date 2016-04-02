@@ -38,11 +38,18 @@ class ThresholdTrigger(MetricTrigger):
     """
 
     def __init__(self, min_threshold=-float('inf'), max_threshold=float('inf')):
+        """
+        :param min_threshold: if the variable crosses this threshold then the trigger returns True.
+        :param max_threshold: if the variable crosses this threshold then the trigger returns True.
+        """
         super(MetricTrigger, self).__init__()
         self.min = min_threshold
         self.max = max_threshold
 
     def __call__(self, new_value):
+        """
+        :return: whether the value exceeds the predefined thresholds.
+        """
         return new_value > self.max or new_value < self.min
 
 
@@ -53,12 +60,19 @@ class PatienceTrigger(MetricTrigger, StatefulTriggerMixin):
     """
 
     def __init__(self, patience):
+        """
+        :param patience: how many consecutive suboptimal values to tolerate before triggering.
+        """
         super(PatienceTrigger, self).__init__()
         self.patience = patience
         self.best_so_far = -float('inf')
         self.time_since_best = 0
 
     def __call__(self, new_value):
+        """
+        :param new_value: value for this iteration.
+        :return: True if `self.patience` consecutive suboptimal values have been seen.
+        """
         if new_value > self.best_so_far:
             self.best_so_far = new_value
             self.time_since_best = 0
@@ -67,6 +81,9 @@ class PatienceTrigger(MetricTrigger, StatefulTriggerMixin):
         return self.time_since_best > self.patience
 
     def reset(self):
+        """
+        reset the Trigger to its initial state (eg. by clear its memory)
+        """
         self.best_so_far = -float('inf')
         self.time_since_best = 0
 
@@ -83,11 +100,19 @@ class SlopeTrigger(MetricTrigger, StatefulTriggerMixin):
     unit apart on the x axis.
     """
     def __init__(self, range, window_size=10):
+        """
+        :param range: a tuple of minimum and maximum range to tolerate.
+        :param window_size: how many points to use to estimate the slope
+        """
         self.range = range
         self.window_size = window_size
         self.vals = deque(maxlen=window_size)
 
     def __call__(self, new_value):
+        """
+        :param new_value: value for this time step
+        :return: True if the value falls within the predefined range.
+        """
         self.vals.append(new_value)
 
         # not enough points to robustly estimate slope
@@ -97,10 +122,16 @@ class SlopeTrigger(MetricTrigger, StatefulTriggerMixin):
         return self.range[0] <= self.slope() <= self.range[1]
 
     def slope(self):
+        """
+        :return: the esitmated slope for points in the current window
+        """
         x = range(self.window_size)
         y = self.vals
         slope, bias = np.polyfit(x, y, 1)
         return slope
 
     def reset(self):
+        """
+        reset the Trigger to its initial state (eg. by clear its memory)
+        """
         self.vals = deque(maxlen=self.window_size)

@@ -6,12 +6,9 @@ __author__ = 'kelvinguu'
 def labels_to_onehots(labels, num_classes):
     """Convert a vector of integer class labels to a matrix of one-hot target vectors.
 
-    Args:
-        labels: a vector of integer labels, 0 to num_classes. Has shape (batch_size,).
-        num_classes: the total number of classes
-
-    Returns:
-        onehots: has shape (batch_size, num_classes)
+    :param labels: a vector of integer labels, 0 to num_classes. Has shape (batch_size,).
+    :param num_classes: the total number of classes
+    :return: has shape (batch_size, num_classes)
     """
     batch_size = labels.get_shape().as_list()[0]
 

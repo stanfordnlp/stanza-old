@@ -1,3 +1,6 @@
+"""
+Dataset module for managing text datasets.
+"""
 __author__ = 'victor'
 from collections import OrderedDict
 import random
@@ -11,17 +14,29 @@ class Dataset(object):
     """
     Generic Dataset object that encapsulates a list of instances.
 
-    The dataset stores the instances in an
-    ordered dictionary of fields. Each field maps to a list, the ith element of the list for field 'foo'
-    corresponds to the attribute 'foo' for the ith instance in the dataset.
+    The dataset stores the instances in an ordered dictionary of fields.
+    Each field maps to a list, the ith element of the list for field 'foo' corresponds to the attribute 'foo' for the ith instance in the dataset.
 
     The dataset object supports indexing, iterating, slicing (eg. for iterating over batches), shuffling,
     conversion to/from CONLL format, among others.
+
+    Example:
+
+    .. code-block:: python
+
+        d = Dataset({'Name': ['Alice', 'Bob', 'Carol', 'David', 'Ellen'], 'SSN': [1, 23, 45, 56, 7890]})
+        print(d)  # Dataset(Name, SSN)
+        print(d[2])  # OrderedDict([('SSN', 45), ('Name', 'Carol')])
+        print(d[1:3])  # OrderedDict([('SSN', [23, 45]), ('Name', ['Bob', 'Carol'])])
+
+        for e in d:
+            print(e)  # OrderedDict([('SSN', 1), ('Name', 'Alice')]) ...
     """
 
     def __init__(self, fields):
         """
         :param fields: An ordered dictionary in which a key is the name of an attribute and a value is a list of the values of the instances in the dataset.
+
         :return: A Dataset object
         """
         self.fields = OrderedDict(fields)
@@ -68,6 +83,7 @@ class Dataset(object):
         The second instance has the label `Bob` and the description `["I'm", 'bob']` and the tags `['t1', 't2']`.
 
         :param fname: The CONLL formatted file from which to load the dataset
+
         :return: loaded Dataset instance
         """
         def process_cache(cache, fields):
@@ -123,8 +139,11 @@ class Dataset(object):
     def convert(self, converters, in_place=False):
         """
         Applies transformations to the dataset.
+
         :param converters: A dictionary specifying the function to apply to each field. If a field is missing from the dictionary, then it will not be transformed.
+
         :param in_place: Whether to perform the transformation in place or create a new dataset instance
+
         :return: the transformed dataset instance
         """
         dataset = self if in_place else self.__class__(OrderedDict([(name, data[:]) for name, data in self.fields.items()]))
@@ -138,6 +157,7 @@ class Dataset(object):
     def shuffle(self):
         """
         Re-indexes the dataset in random order
+
         :return: the shuffled dataset instance
         """
         order = range(len(self))
@@ -152,6 +172,7 @@ class Dataset(object):
     def __getitem__(self, item):
         """
         :param item: An integer index or a slice (eg. 2, 1:, 1:5)
+
         :return: an ordered dictionary of the instance(s) at index/indices `item`.
         """
         return OrderedDict([(name, data[item]) for name, data in self.fields.items()])
@@ -159,6 +180,7 @@ class Dataset(object):
     def __setitem__(self, key, value):
         """
         :param key: An integer index or a slice (eg. 2, 1:, 1:5)
+
         :param value: Sets the instances at index/indices `key` to the instances(s) `value`
         """
         for name, data in self.fields.items():

@@ -3,15 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to stanza's documentation!
-==================================
 
-Contents:
+Documentation Quicknav
+======================
 
 .. toctree::
    :maxdepth: 4
 
-   stanza
+   Text <stanza.text>
+   Machine learning utilities <stanza.ml>
+   Monitoring utilities <stanza.monitoring>
+   Misc <stanza.util>
+
+
+.. include:: ../README.rst
+
 
 
 Indices and tables
@@ -19,5 +25,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
-

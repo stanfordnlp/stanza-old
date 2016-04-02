@@ -4,10 +4,24 @@ import stanza
 import requests
 import logging
 
+
 def get_from_url(url):
+    """
+    :param url: url to download from
+    :return: return the content at the url
+    """
     return requests.get(url).content
 
+
 def get_data_or_download(dir_name, file_name, url='', size='unknown'):
+    """Returns the data. if the data hasn't been downloaded, then first download the data.
+
+    :param dir_name: directory to look in
+    :param file_name: file name to retrieve
+    :param url: if the file is not found, then download it from this url
+    :param size: the expected size
+    :return: path to the requested file
+    """
     dname = os.path.join(stanza.DATA_DIR, dir_name)
     fname = os.path.join(dname, file_name)
     if not os.path.isdir(dname):
