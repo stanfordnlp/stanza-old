@@ -8,3 +8,11 @@ stanza.monitoring.trigger module
     :members:
     :special-members:
     :show-inheritance:
+
+stanza.monitoring.experiment module
+-----------------------------------
+
+.. automodule:: stanza.monitoring.experiment
+    :members:
+    :special-members:
+    :show-inheritance:

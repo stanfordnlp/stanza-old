@@ -127,7 +127,7 @@ class Dataset(object):
 
         def instance_to_conll(inst):
             tab = [v for k, v in inst.items() if k != 'label']
-            return '{}\n{}'.format(inst['label'], '\n'.join(['\t'.join([e for e in row]) for row in zip(*tab)]))
+            return '{}\n{}'.format(inst['label'], '\n'.join(['\t'.join(['-' if e is None else str(e) for e in row]) for row in zip(*tab)]))
 
         with open(fname, 'wb') as f:
             f.write('# {}'.format('\t'.join([k for k in self.fields if k != 'label'])))
