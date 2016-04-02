@@ -93,9 +93,9 @@ class Dataset(object):
             fields['label'].append(cache[0][0])
             instance = {k: [] for k in fields if k != 'label'}
             for l in cache[1:]:
-                for i, (k, v) in enumerate(instance.items()):
+                for i, k in enumerate(fields):
                     if k != 'label':
-                        v.append(None if l[i] == '-' else l[i])
+                        instance[k].append(None if l[i] == '-' else l[i])
             for k, v in instance.items():
                 fields[k].append(v)
 
