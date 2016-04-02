@@ -90,7 +90,7 @@ class Dataset(object):
             cache = [l.split() for l in cache if l]
             if not cache:
                 return None
-            fields['label'].append(cache[0])
+            fields['label'].append(cache[0][0])
             instance = {k: [] for k in fields if k != 'label'}
             for l in cache[1:]:
                 for i, (k, v) in enumerate(instance.items()):
@@ -195,8 +195,10 @@ class Dataset(object):
         for i in xrange(len(self)):
             yield self[i]
 
-    def copy(self):
+    def copy(self, keep_fields=None):
         """
+        :param keep_fields: if specified, then only the given fields will be kept
         :return: A deep copy of the dataset (each instance is copied).
         """
-        return self.__class__(OrderedDict([(name, data[:]) for name, data in self.fields.items()]))
+        keep_fields = self.fields.keys() or keep_fields
+        return self.__class__(OrderedDict([(name, data[:]) for name, data in self.fields.items() if name in keep_fields]))

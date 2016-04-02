@@ -53,7 +53,7 @@ bob\tt2"""
             f.write(self.CONLL)
             f.flush()
             d = Dataset.load_conll(f.name)
-            self.assertItemsEqual(self.CONLL_MOCK, d.fields)
+            self.assertDictEqual(self.CONLL_MOCK, d.fields)
 
     def test_write_conll(self):
         f = NamedTemporaryFile(delete=False)
@@ -72,10 +72,10 @@ bob\tt2"""
         self.assertIsNot(d, dd)
 
         # doesn't change original
-        self.assertItemsEqual(self.MOCK, d.fields)
+        self.assertDictEqual(self.MOCK, d.fields)
 
         # changes copy
-        self.assertItemsEqual({'Name': ['alice', 'bob', 'carol'], 'SSN': ['123', None, '7890']}, dd.fields)
+        self.assertDictEqual({'Name': ['alice', 'bob', 'carol'], 'SSN': ['123', None, '7890']}, dd.fields)
 
     def test_convert_in_place(self):
         d = self.mock
@@ -85,7 +85,7 @@ bob\tt2"""
         self.assertIs(d, dd)
 
         # changes original
-        self.assertItemsEqual({'Name': ['alice', 'bob', 'carol'], 'SSN': ['123', None, '7890']}, d.fields)
+        self.assertDictEqual({'Name': ['alice', 'bob', 'carol'], 'SSN': ['123', None, '7890']}, d.fields)
 
     def test_shuffle(self):
         d = self.mock
@@ -93,32 +93,32 @@ bob\tt2"""
         self.assertIs(d, dd)
 
         # this relies on random seed
-        self.assertItemsEqual({'Name': ['Carol', 'Bob', 'Alice'], 'SSN': ['7890', None, '123']}, d.fields)
+        self.assertDictEqual({'Name': ['Carol', 'Bob', 'Alice'], 'SSN': ['7890', None, '123']}, d.fields)
 
     def test_getitem(self):
         d = self.mock
         self.assertRaises(IndexError, lambda: d.__getitem__(10))
-        self.assertItemsEqual({'Name': 'Bob', 'SSN': None}, d[1])
-        self.assertItemsEqual({'Name': 'Alice', 'SSN': '123'}, d[0])
-        self.assertItemsEqual({'Name': 'Carol', 'SSN': '7890'}, d[-1])
+        self.assertDictEqual({'Name': 'Bob', 'SSN': None}, d[1])
+        self.assertDictEqual({'Name': 'Alice', 'SSN': '123'}, d[0])
+        self.assertDictEqual({'Name': 'Carol', 'SSN': '7890'}, d[-1])
 
-        self.assertItemsEqual({'Name': ['Bob', 'Carol'], 'SSN': [None, '7890']}, d[1:])
-        self.assertItemsEqual({'Name': ['Alice', 'Bob'], 'SSN': ['123', None]}, d[:2])
-        self.assertItemsEqual({'Name': ['Bob'], 'SSN': [None]}, d[1:2])
+        self.assertDictEqual({'Name': ['Bob', 'Carol'], 'SSN': [None, '7890']}, d[1:])
+        self.assertDictEqual({'Name': ['Alice', 'Bob'], 'SSN': ['123', None]}, d[:2])
+        self.assertDictEqual({'Name': ['Bob'], 'SSN': [None]}, d[1:2])
 
     def test_setitem(self):
         d = self.mock
         self.assertRaises(InvalidFieldsException, lambda: d.__setitem__(1, 'foo'))
         self.assertRaises(IndexError, lambda: d.__setitem__(10, {'Name': 'Victor', 'SSN': 123}))
         d[1] = {'Name': 'Victor', 'SSN': 123}
-        self.assertItemsEqual({'Name': ['Alice', 'Victor', 'Carol'], 'SSN': ['123', 123, '7890']}, d.fields)
+        self.assertDictEqual({'Name': ['Alice', 'Victor', 'Carol'], 'SSN': ['123', 123, '7890']}, d.fields)
 
     def test_copy(self):
         d = self.mock
         dd = d.copy()
         self.assertIsNot(d, dd)
-        self.assertItemsEqual(self.MOCK, d.fields)
-        self.assertItemsEqual(self.MOCK, dd.fields)
+        self.assertDictEqual(self.MOCK, d.fields)
+        self.assertDictEqual(self.MOCK, dd.fields)
 
         for name in d.fields.keys():
             self.assertIsNot(d.fields[name], dd.fields[name])
