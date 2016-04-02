@@ -17,6 +17,10 @@ Stanza is still in early development. Interfaces and code organization will prob
 - To request or discuss additional functionality, open a GitHub issue.
 - To contribute code, make a pull request.
 
+## Documentation
+
+Documentation is hosted on readthedocs at []().
+
 ## For Stanford NLP members
 
 Stanza is not meant to include every research project the group undertakes. If you have a standalone project that you would like to share with other people in the group, you can:
@@ -59,6 +63,22 @@ to install your changes. Next, please make sure you have not regressed the code 
 ```python
 python setup.py test
 ```
+
+Documentation is generated via Sphinx using inline comments. To set up your environment such that you can generate docs locally:
+
+```
+pip install sphinx sphinx-autobuild
+```
+
+Then, to auto-generate the docs:
+
+```
+sphinx-apidoc -F -o docs `pwd`
+cd docs && make
+open _build/html/index.html
+```
+
+Unfortunately, we have to use RST to write the inline docstrings in order for Sphinx to work. But this is probably a worthwhile compromise given how well Sphinx and ReadTheDocs work.
 
 ## Contributors
 

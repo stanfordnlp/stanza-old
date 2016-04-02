@@ -6,6 +6,8 @@ __pycache__/
 .ropeproject/
 data/
 
+_*/
+
 # C extensions
 *.so
 
