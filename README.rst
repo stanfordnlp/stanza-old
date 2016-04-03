@@ -83,7 +83,7 @@ If you introduced a new module, please auto-generate the docs:
 
 ::
 
-    sphinx-apidoc -F -o docs `pwd`
+    sphinx-apidoc -F -o docs stanza
     cd docs && make
     open _build/html/index.html
 
