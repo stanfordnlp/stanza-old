@@ -32,7 +32,7 @@ Documentation
 -------------
 
 Documentation is hosted on Read the Docs at
-http://stanford-nlp.readthedocs.org/en/latest/. Stanza is still in early
+http://stanza.readthedocs.org/en/latest/. Stanza is still in early
 development. Interfaces and code organization will probably change
 substantially over the next few months.
 
@@ -122,5 +122,5 @@ share with other people in the group, you can:
 
 .. |Master Build Status| image:: https://travis-ci.org/stanfordnlp/stanza.svg?branch=master
    :target: https://travis-ci.org/stanfordnlp/stanza
-.. |Documentation Status| image:: https://readthedocs.org/projects/stanford-nlp/badge/?version=latest
-   :target: http://stanford-nlp.readthedocs.org/en/latest/?badge=latest
+.. |Documentation Status| image:: https://readthedocs.org/projects/stanza/badge/?version=latest
+   :target: http://stanza.readthedocs.org/en/latest/?badge=latest
