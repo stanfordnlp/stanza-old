@@ -22,18 +22,14 @@ before_install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - which pip
-  - which python
 # Install packages
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
-  - conda install -c https://conda.anaconda.org/jjhelmus tensorflow
-  - pip install ConfigArgParse pyhocon pypng
   - pip install -e .
 # env:
 #   - THEANO_FLAGS='floatX=float32'
 # Run test
-script: python setup.py all_test
+script: python setup.py test
 # only integrate the master branch
 branches:
   only:
