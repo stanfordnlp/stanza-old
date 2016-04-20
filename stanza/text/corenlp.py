@@ -3,9 +3,10 @@ import json, requests
 # This is almost a complete copy of Smitha Milli's code: https://github.com/smilli/py-corenlp
 # We will aim to extend this.
 
-class StanfordCoreNLP:
+class CoreNLP:
 
     def __init__(self, server_url):
+        # drop trailing slash
         if server_url[-1] == '/':
             server_url = server_url[:-1]
         self.server_url = server_url
@@ -23,12 +24,9 @@ class StanfordCoreNLP:
             '$ java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer')
 
         r = requests.get(
-            self.server_url, params={
-                'properties': str(properties)
-            }, data=text)
+            self.server_url, params={'properties': str(properties)}, data=text)
         output = r.text
-        if ('outputFormat' in properties
-             and properties['outputFormat'] == 'json'):
+        if properties.get('outputFormat', None) == 'json':
             try:
                 output = json.loads(output, strict=False)
             except:
