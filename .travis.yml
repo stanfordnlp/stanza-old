@@ -28,8 +28,8 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
   - conda install -c https://conda.anaconda.org/jjhelmus tensorflow
-  - $HOME/miniconda/pip install ConfigArgParse pyhocon pypng
-  - $HOME/miniconda/pip install -e .
+  - pip install ConfigArgParse pyhocon pypng
+  - pip install -e .
 # env:
 #   - THEANO_FLAGS='floatX=float32'
 # Run test
