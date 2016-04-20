@@ -1,4 +1,4 @@
-__author__ = 'victor'
+__author__ = 'victor, wmonroe4'
 
 from distutils.core import setup, Command
 
@@ -14,7 +14,7 @@ class UnitTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['python', '-m', 'unittest', 'discover', 'test/unit_tests'])
+        errno = subprocess.call(['nosetests', '--with-doctest', 'test/unit_tests'])
         raise SystemExit(errno)
 
 
@@ -29,7 +29,7 @@ class SlowTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['python', '-m', 'unittest', 'discover', 'test/slow_tests'])
+        errno = subprocess.call(['nosetests', '--with-doctest', 'test/slow_tests'])
         raise SystemExit(errno)
 
 
@@ -44,7 +44,7 @@ class AllTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['python', '-m', 'unittest', 'discover', 'test'])
+        errno = subprocess.call(['nosetests', '--with-doctest'])
         raise SystemExit(errno)
 
 

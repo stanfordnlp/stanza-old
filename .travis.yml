@@ -25,11 +25,18 @@ before_install:
 # Install packages
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
+  - pip install ConfigArgParse pyhocon pypng
   - pip install -e .
+  # Minimal subset of tensorflow needed for summary writing
+  - if [ ! -e tensorflow ]; then
+        ( python -c 'import tensorflow.core.util.event_pb2' >/dev/null 2>&1 ) || (
+            ln -s third-party/tensorflow tensorflow
+        )
+    fi
 # env:
 #   - THEANO_FLAGS='floatX=float32'
 # Run test
-script: python setup.py test
+script: python setup.py all_test
 # only integrate the master branch
 branches:
   only:
