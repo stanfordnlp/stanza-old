@@ -24,15 +24,10 @@ before_install:
   - conda info -a
 # Install packages
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy requests
+  - pip install --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0rc0-cp27-none-linux_x86_64.whl
   - pip install ConfigArgParse pyhocon pypng
   - pip install -e .
-  # Minimal subset of tensorflow needed for summary writing
-  - if [ ! -e tensorflow ]; then
-        ( python -c 'import tensorflow.core.util.event_pb2' >/dev/null 2>&1 ) || (
-            ln -s third-party/tensorflow tensorflow
-        )
-    fi
 # env:
 #   - THEANO_FLAGS='floatX=float32'
 # Run test
