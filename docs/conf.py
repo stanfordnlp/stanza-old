@@ -15,12 +15,6 @@
 import sys
 import os
 import shlex
-import mock
-
-# mock hard-to-install modules
-MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'tensorflow']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
 
 # document init
 def skip(app, what, name, obj, skip, options):

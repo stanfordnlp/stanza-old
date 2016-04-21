@@ -4,6 +4,7 @@ Dataset module for managing text datasets.
 __author__ = 'victor'
 from collections import OrderedDict
 import random
+import numpy as np
 
 
 class InvalidFieldsException(Exception):
@@ -202,3 +203,19 @@ class Dataset(object):
         """
         keep_fields = self.fields.keys() or keep_fields
         return self.__class__(OrderedDict([(name, data[:]) for name, data in self.fields.items() if name in keep_fields]))
+
+    @classmethod
+    def pad(cls, sequences, padding, pad_len=None):
+        """
+        Pads a list of sequences such that they form a matrix.
+
+        :param sequences: a list of sequences of varying lengths.
+        :param padding: the value of padded cells.
+        :param pad_len: the length of the maximum padded sequence.
+        """
+        max_len = max([len(s) for s in sequences])
+        pad_len = pad_len or max_len
+        assert pad_len >= max_len, 'pad_len {} must be greater or equal to the longest sequence {}'.format(pad_len, max_len)
+        for i, s in enumerate(sequences):
+            sequences[i] = [padding] * (pad_len - len(s)) + s
+        return np.array(sequences)
