@@ -89,6 +89,8 @@ If you introduced a new module, please auto-generate the docs:
 
 You most likely need to manually edit the `rst` file corresponding to your new module.
 
+Our docs are `hosted on Readthedocs <https://readthedocs.org/projects/stanford-nlp/>`__. If you'd like admin access to the Readthedocs project, please contact Victor or Will.
+
 Road Map
 --------
 
