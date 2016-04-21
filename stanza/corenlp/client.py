@@ -1,5 +1,4 @@
 import requests
-from annotation import Annotation
 
 __author__ = 'vzhong'
 
