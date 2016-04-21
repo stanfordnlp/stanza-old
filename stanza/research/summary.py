@@ -177,9 +177,16 @@ class SummaryWriter(object):
                 del self.queue[:]
 
 
-POS_BUCKETS = 1e-12 * 1.1 ** np.arange(0, 776.)
-POS_BUCKETS[-1] = sys.float_info.max
-DEFAULT_BUCKETS = np.array(list(reversed(-POS_BUCKETS)) + [0.0] + list(POS_BUCKETS))
+_default_buckets = None
+
+def default_buckets():
+    global _default_buckets
+    if _default_buckets is None:
+        positive_buckets = 1e-12 * 1.1 ** np.arange(0, 776.)
+        positive_buckets[-1] = sys.float_info.max
+        _default_buckets = np.array(list(reversed(-positive_buckets)) + [0.0] +
+                                    list(positive_buckets))
+    return _default_buckets
 
 
 class Histogram(object):
@@ -211,7 +218,7 @@ class Histogram(object):
     '''
     def __init__(self, bucket_limits=None):
         if bucket_limits is None:
-            bucket_limits = DEFAULT_BUCKETS
+            bucket_limits = default_buckets()
         self.bucket_limits = bucket_limits
         self.clear()
 
