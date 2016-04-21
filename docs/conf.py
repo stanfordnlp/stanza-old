@@ -15,6 +15,24 @@
 import sys
 import os
 import shlex
+import mock
+
+# mock hard-to-install modules
+MOCK_MODULES = [
+    'numpy.random',
+    'scipy',
+    'matplotlib.image',
+    'tensorflow.core.util.event_pb2',
+    'tensorflow.core.framework.summary_pb2',
+    'png',
+    'configargparse',
+    'pyhocon',
+]
+for mod_name in MOCK_MODULES:
+    levels = mod_name.split('.')
+    for i in range(len(levels)):
+        parent = '.'.join(levels[:i + 1])
+        sys.modules[parent] = mock.Mock()
 
 # document init
 def skip(app, what, name, obj, skip, options):

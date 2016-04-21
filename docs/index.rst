@@ -15,6 +15,7 @@ Documentation Quicknav
    Machine learning utilities <stanza.ml>
    Monitoring utilities <stanza.monitoring>
    Misc <stanza.util>
+   Research (development code) <stanza.research>
 
 
 Examples
