@@ -14,7 +14,7 @@ class UnitTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['nosetests', '--with-doctest', 'test/unit_tests'])
+        errno = subprocess.call(['nosetests', '--with-doctest', 'stanza', 'test/unit_tests'])
         raise SystemExit(errno)
 
 
