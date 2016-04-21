@@ -1,7 +1,6 @@
 """A module for periodically displaying progress on a hierarchy of tasks
 and estimating time to completion.
 
->>> assert False
 >>> import progress, datetime
 >>> progress.set_resolution(datetime.datetime.resolution)  # show all messages, don't sample
 >>> progress.start_task('Repetition', 2)
