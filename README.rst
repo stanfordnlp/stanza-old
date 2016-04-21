@@ -104,7 +104,7 @@ Road Map
    -  [ ] a tool for interacting with an already running job via edits
       to a text file
 
--  [ ] an API for calling CoreNLP
+-  [x] an API for calling CoreNLP
 
 For Stanford NLP members
 ------------------------

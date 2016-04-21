@@ -10,7 +10,6 @@ Documentation Quicknav
 .. toctree::
    :maxdepth: 4
 
-   Examples <examples>
    Text <stanza.text>
    CoreNLP Client <stanza.corenlp>
    Machine learning utilities <stanza.ml>
