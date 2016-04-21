@@ -8,9 +8,13 @@ parser.add_argument('--random_seed', default='DefaultRandomSeed',
                          'for reproducible experiments. The string will be hashed '
                          "and the hash used as the seed to numpy's RandomState.")
 
-options, _ = parser.parse_known_args()
-_random_state = np.random.RandomState(np.uint32(hash(options.random_seed)))
+_random_state = None
 
 
 def get_rng():
+    global _random_state
+    if _random_state is None:
+        options, _ = parser.parse_known_args()
+        _random_state = np.random.RandomState(np.uint32(hash(options.random_seed)))
+
     return _random_state
