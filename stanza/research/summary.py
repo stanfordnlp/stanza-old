@@ -1,5 +1,5 @@
 '''
->>> fs = patcher('stanza.unstable.summary', '/test'); open = fs.start()
+>>> fs = patcher('stanza.research.summary', '/test'); open = fs.start()
 ... # ^ for doctest; ignore
 
 A nearly pure-Python module for logging output to a file in TensorBoard's
