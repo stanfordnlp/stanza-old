@@ -1,6 +1,4 @@
 import numpy as np
-# Bootstrap CI's are not very robust; disabled for now
-# import bootstrap
 
 from . import config
 
@@ -58,7 +56,6 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
         gmean = np.exp(np.log(inst_outputs).mean())
         sum = np.sum(inst_outputs)
         std = np.std(inst_outputs)
-        # ci_lower, ci_upper = bootstrap.ci(inst_outputs)
 
         results.update({
             prefix + 'mean': mean,
