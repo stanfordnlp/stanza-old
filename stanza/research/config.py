@@ -189,8 +189,6 @@ def redirect_output():
     logfile.log_stdout_to(outfile)
     logfile.log_stderr_to(get_file_path('stderr.log'))
 
-redirect_output()
-
 
 def dump(data, filename, lines=False, *args, **kwargs):
     try:
