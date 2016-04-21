@@ -22,9 +22,9 @@ class TensorBoardLogger(object):
 
     def log_proto(self, proto, step_num):
         """Log a Summary protobuf to the event file.
-        Args:
-            proto:  a Summary protobuf
-            step_num: the iteration number at which this value was logged
+
+        :param proto:  a Summary protobuf
+        :param step_num: the iteration number at which this value was logged
         """
         self.summ_writer.add_summary(proto, step_num)
         return proto
@@ -32,10 +32,9 @@ class TensorBoardLogger(object):
     def log(self, key, val, step_num):
         """Directly log a scalar value to the event file.
 
-        Args:
-            key (string): a name for the value
-            val: a float
-            step_num: the iteration number at which this value was logged
+        :param string key: a name for the value
+        :param val: a float
+        :param step_num: the iteration number at which this value was logged
         """
         try:
             ph, summ = self.summaries[key]
