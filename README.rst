@@ -42,22 +42,22 @@ Development Guide
 To request or discuss additional functionality, please open a GitHub
 issue. We greatly appreciate pull requests!
 
+Tests
+~~~~~
+
+Stanza has unit tests as well as longer, integration tests. We ask that
+all contributors run the unit tests before submitting pull requests:
+
+.. code:: python
+
+    python setup.py test
+
 Adding a new module
 ~~~~~~~~~~~~~~~~~~~
 
 If you are adding a new module, please remember to add it to
 ``setup.py`` as well as a corresponding ``.rst`` file in the ``docs``
 directory.
-
-Tests
-~~~~~
-
-Stanza has unit tests as well as longer, integration tests. We asks that
-all contributors run the unit tests before submitting pull requests:
-
-.. code:: python
-
-    python setup.py test
 
 Documentation
 ~~~~~~~~~~~~~
