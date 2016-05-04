@@ -45,12 +45,18 @@ issue. We greatly appreciate pull requests!
 Tests
 ~~~~~
 
-Stanza has unit tests as well as longer, integration tests. We ask that
-all contributors run the unit tests before submitting pull requests:
+Stanza has unit tests, doctests, and longer, integration tests. We ask that all
+contributors run the unit tests and doctests before submitting pull requests:
 
 .. code:: python
 
     python setup.py test
+
+Doctests are the easiest way to write a test for new functionality, and serve
+as helpful examples for how to use your code. See
+`progress.py <stanza/research/progress.py>`__ for a simple example of a easily
+testable module, or `summary.py <stanza/research/summary.py>`__ for a more
+involved setup involving a mocked filesystem.
 
 Adding a new module
 ~~~~~~~~~~~~~~~~~~~
