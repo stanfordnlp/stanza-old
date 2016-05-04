@@ -128,6 +128,85 @@ share with other people in the group, you can:
    Overflow <http://nlp.stanford.edu/local/qa/>`__ (use the ``stanza``
    tag).
 
+Using `git subtree`
+~~~~~~~~~~~~~~~~~~~
+
+That said, it can be useful to add functionality to Stanza while you work in a
+separate repo on a project that depends on Stanza. Since Stanza is under active
+development, you will want to version-control the Stanza code that your code
+uses. Probably the most effective way of accomplishing this is by using
+``git subtree``.
+
+``git subtree`` includes the source tree of another repo (in
+this case, Stanza) as a directory within your repo (your cutting-edge
+research), and keeps track of some metadata that allows you to keep that
+directory in sync with the original Stanza code.  The main advantage of ``git
+subtree`` is that you can modify the Stanza code locally, merge in updates, and
+push your changes back to the Stanza repo to share them with the group. (``git
+submodule`` doesn't allow this.)
+
+It has some downsides to be aware of:
+
+-  You have a copy of all of Stanza as part of your repo. For small projects,
+   this could increase your repo size dramatically. (Note: you can keep the
+   history of your repo from growing at the same rate as Stanza's by using
+   squashed commits; it's only the size of the source tree that unavoidably
+   bloats your project.)
+-  Your repo's history will contain a merge commit every time you update Stanza
+   from upstream. This can look ugly, especially in graphical viewers.
+
+Still, ``subtree`` can be configured to be fairly easy to use, and the consensus
+seems to be that it is superior to ``submodule`` (`<https://codingkilledthecat.wordpress.com/2012/04/28/why-your-company-shouldnt-use-git-submodules/>`__).
+
+Here's one way to configure ``submodule`` so that you can include Stanza in
+your repo and contribute your changes back to the master repo:
+
+::
+
+    # Add Stanza as a remote repo
+    git remote add stanza http://<your github username>@github.com/stanfordnlp/stanza.git
+    # Import the contents of the repo as a subtree
+    git subtree add --prefix third-party/stanza stanza master --squash
+    # Put a symlink to the actual module somewhere where your code needs it
+    ln -s third-party/stanza/stanza stanza
+    # Add aliases for the two things you'll need to do with the subtree
+    git alias stanza-update subtree pull --prefix third-party/stanza stanza master --squash
+    git alias stanza-push subtree push --prefix third-party/stanza stanza master
+
+After this, you can use the aliases to push and pull Stanza like so:
+
+::
+
+    git stanza-update
+    git stanza-push
+
+I [@futurulus] highly recommend a `topic branch/rebase workflow <https://randyfay.com/content/rebase-workflow-git>`__,
+which will keep your history fairly clean besides those pesky subtree merge
+commits:
+
+::
+
+    # Create a topic branch
+    git checkout -b fix-stanza
+    # <hack hack hack, make some commits>
+
+    git checkout master
+    # Update Stanza on master, should go smoothly because master doesn't
+    # have any of your changes yet
+    git stanza-update
+
+    # Go back and replay your fixes on top of master changes
+    git checkout fix-stanza
+    git rebase master
+    # You might need to resolve merge conflicts here
+
+    # Add your rebased changes to master and push
+    git checkout master
+    git merge --ff-only fix-stanza
+    git stanza-push
+    # Done!
+    git branch -d fix-stanza
+
 .. |Master Build Status| image:: https://travis-ci.org/stanfordnlp/stanza.svg?branch=master
    :target: https://travis-ci.org/stanfordnlp/stanza
 .. |Documentation Status| image:: https://readthedocs.org/projects/stanza/badge/?version=latest
