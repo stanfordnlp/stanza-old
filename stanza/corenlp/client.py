@@ -2,7 +2,9 @@ import requests
 
 __author__ = 'vzhong'
 
-# inspired by https://github.com/smilli/py-corenlp
+# Original work by smilli:
+# https://github.com/smilli/py-corenlp
+
 
 
 class Client(object):
