@@ -158,7 +158,7 @@ It has some downsides to be aware of:
 Still, ``subtree`` can be configured to be fairly easy to use, and the consensus
 seems to be that it is superior to ``submodule`` (`<https://codingkilledthecat.wordpress.com/2012/04/28/why-your-company-shouldnt-use-git-submodules/>`__).
 
-Here's one way to configure ``submodule`` so that you can include Stanza in
+Here's one way to configure ``subtree`` so that you can include Stanza in
 your repo and contribute your changes back to the master repo:
 
 ::
