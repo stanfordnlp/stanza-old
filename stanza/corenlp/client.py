@@ -2,7 +2,7 @@ import requests
 
 __author__ = 'vzhong'
 
-# Original work by smilli:
+# Original work by Smitha Milli:
 # https://github.com/smilli/py-corenlp
 
 
