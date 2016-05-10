@@ -51,6 +51,22 @@ def accuracy(eval_data, predictions, scores='ignored', learner='ignored'):
             for inst, pred in zip(eval_data, predictions)]
 
 
+def prec1(eval_data, predictions, scores='ignored', learner='ignored'):
+    '''
+    Return the precision@1 of each prediction in `predictions`: 1 if it is equal
+    to any of the correct outputs for the corresponding instance in `eval_data`,
+    0 otherwise.
+
+    >>> data = [Instance('input', ['correct', 'right']),
+    ...         Instance('input', ['correct', 'right']),
+    ...         Instance('input', ['correct', 'right'])]
+    >>> prec1(data, ['correct', 'wrong', 'right'])
+    [1, 0, 1]
+    '''
+    return [int(any(o == pred for o in inst.output))
+            for inst, pred in zip(eval_data, predictions)]
+
+
 def bleu(eval_data, predictions, scores='ignored', learner='ignored'):
     '''
     Return corpus-level BLEU score of `predictions` using the `output`
