@@ -1,5 +1,14 @@
 import numpy as np
+'''
+import warnings
+try:
+    import nltk.translate.bleu_score as nltk_bleu
+except ImportError as e:
+    warnings.warn('Cannot import nltk; BLEU will be unavailable: ' + str(e))
+    nltk_bleu = None
+'''
 
+from .bleu import corpus_bleu
 from .instance import Instance  # NOQA: for doctest
 from .learner import Learner  # NOQA: for doctest
 
@@ -40,6 +49,58 @@ def accuracy(eval_data, predictions, scores='ignored', learner='ignored'):
     '''
     return [int(inst.output == pred)
             for inst, pred in zip(eval_data, predictions)]
+
+
+def bleu(eval_data, predictions, scores='ignored', learner='ignored'):
+    '''
+    Return corpus-level BLEU score of `predictions` using the `output`
+    field of the instances in `eval_data` as references. This is returned
+    as a length-1 list of floats.
+
+    This uses the NLTK unsmoothed implementation, which has been known
+    to have some bugs. This function patches over the biggest bug, which
+    is that NLTK ignores n-gram overlap counts of 0 (this should result
+    in a zero BLEU score).
+
+    >>> data = [Instance('input', 'this is the good'),
+    ...         Instance('input', 'the bad'),
+    ...         Instance('input', 'and the ugly')]
+    >>> bleu(data, ['this is the good', 'the good', 'seriously really good'])  # doctest: +ELLIPSIS
+    [0.65599...]
+    >>> np.exp(np.mean([np.log(5. / 9.), np.log(3. / 6.),
+    ...                 np.log(2. / 3.), np.log(1. / 1.)]))  # doctest: +ELLIPSIS
+    0.65599...
+    '''
+    ref_groups = ([inst.output.split()]
+                  if isinstance(inst.output, basestring) else
+                  [r.split() for r in inst.output]
+                  for inst in eval_data)
+    return [corpus_bleu(ref_groups, [p.split() for p in predictions])]
+
+
+def _has_4gram_match(ref, pred):
+    '''
+    >>> _has_4gram_match(['four', 'lovely', 'tokens', 'here'],
+    ...                  ['four', 'lovely', 'tokens', 'here'])
+    True
+    >>> _has_4gram_match(['four', 'lovely', 'tokens', 'here'],
+    ...                  ['four', 'lovely', 'tokens', 'here', 'and', 'there'])
+    True
+    >>> _has_4gram_match(['four', 'lovely', 'tokens', 'here'],
+    ...                  ['four', 'ugly', 'tokens', 'here'])
+    False
+    >>> _has_4gram_match(['four', 'lovely', 'tokens'],
+    ...                  ['lovely', 'tokens', 'here'])
+    False
+    '''
+    if len(ref) < 4 or len(pred) < 4:
+        return False
+
+    for i in range(len(ref) - 3):
+        for j in range(len(pred) - 3):
+            if ref[i:i + 4] == pred[j:j + 4]:
+                return True
+    return False
 
 
 def squared_error(eval_data, predictions, scores='ignored', learner='ignored'):
