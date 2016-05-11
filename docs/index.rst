@@ -14,6 +14,7 @@ Documentation Quicknav
    CoreNLP Client <stanza.corenlp>
    Machine learning utilities <stanza.ml>
    Monitoring utilities <stanza.monitoring>
+   Cluster management <stanza.cluster>
    Misc <stanza.util>
    Research (development code) <stanza.research>
 

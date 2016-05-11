@@ -92,14 +92,6 @@ stanza.research.output module
     :undoc-members:
     :show-inheritance:
 
-stanza.research.pick_gpu module
--------------------------------
-
-.. automodule:: stanza.research.pick_gpu
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 stanza.research.rng module
 --------------------------
 
