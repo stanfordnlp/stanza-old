@@ -166,12 +166,12 @@ your repo and contribute your changes back to the master repo:
     # Add Stanza as a remote repo
     git remote add stanza http://<your github username>@github.com/stanfordnlp/stanza.git
     # Import the contents of the repo as a subtree
-    git subtree add --prefix third-party/stanza stanza master --squash
+    git subtree add --prefix third-party/stanza stanza develop --squash
     # Put a symlink to the actual module somewhere where your code needs it
     ln -s third-party/stanza/stanza stanza
     # Add aliases for the two things you'll need to do with the subtree
-    git alias stanza-update subtree pull --prefix third-party/stanza stanza master --squash
-    git alias stanza-push subtree push --prefix third-party/stanza stanza master
+    git alias stanza-update subtree pull --prefix third-party/stanza stanza develop --squash
+    git alias stanza-push subtree push --prefix third-party/stanza stanza develop
 
 After this, you can use the aliases to push and pull Stanza like so:
 
