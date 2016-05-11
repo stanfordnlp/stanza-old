@@ -51,6 +51,8 @@ from the parent directory of the directory containing the events file.
 >>> fs.stop()
 ... # ^ for doctest; ignore
 '''
+__author__ = 'wmonroe4'
+
 import atexit
 import numpy as np
 import png
@@ -128,7 +130,7 @@ class SummaryWriter(object):
         image = Summary.Image(height=val.shape[0], width=val.shape[1],
                               colorspace=RGB, encoded_image_string=encoded)
         summary = Summary(value=[Summary.Value(tag=tag, image=image)])
-        self.add_event(step, summary)
+        self._add_event(step, summary)
 
     def log_scalar(self, step, tag, val):
         '''
@@ -139,7 +141,7 @@ class SummaryWriter(object):
         :param float val: Scalar to graph at this time step (y-axis)
         '''
         summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(val))])
-        self.add_event(step, summary)
+        self._add_event(step, summary)
 
     def log_histogram(self, step, tag, val):
         '''
@@ -153,9 +155,9 @@ class SummaryWriter(object):
         hist = Histogram()
         hist.add(val)
         summary = Summary(value=[Summary.Value(tag=tag, histo=hist.encode_to_proto())])
-        self.add_event(step, summary)
+        self._add_event(step, summary)
 
-    def add_event(self, step, summary):
+    def _add_event(self, step, summary):
         t = time.time()
         e = Event(wall_time=t, step=step, summary=summary)
         self.queue.append(e)
@@ -328,3 +330,10 @@ def write_events(stream, events):
         stream.write(len_crc)
         stream.write(data)
         stream.write(data_crc)
+
+
+__all__ = [
+    'SummaryWriter',
+    'read_events',
+    'write_events',
+]
