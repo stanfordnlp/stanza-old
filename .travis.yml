@@ -42,6 +42,7 @@ branches:
   only:
     - master
     - feature
+    - develop
 # web hooks (eg. gitter)
 notifications:
   slack:
