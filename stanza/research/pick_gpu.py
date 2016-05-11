@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-# Print the name of a device to use, either 'cpu' or 'gpu0', 'gpu1',...
-# The least-used GPU with usage under the constant threshold will be chosen;
-# ties are broken randomly.
-#
-# Can be called from the shell, with no arguments:
-#
-#   $ python pick_gpu.py
-#   gpu0
-#
-# Warning: This is hacky and brittle, and can break if nvidia-smi changes
-# in the way it formats its output.
-#
-# Maintainers: sbowman@stanford.edu, wmonroe4@stanford.edu
+'''
+Print the name of a device to use, either 'cpu' or 'gpu0', 'gpu1',...
+The least-used GPU with usage under the constant threshold will be chosen;
+ties are broken randomly.
+
+Can be called from the shell, with no arguments:
+
+  $ python pick_gpu.py
+  gpu0
+
+Warning: This is hacky and brittle, and can break if nvidia-smi changes
+in the way it formats its output.
+'''
+__author__ = 'sbowman@stanford.edu, wmonroe4@stanford.edu'
 
 import subprocess
 import sys
@@ -153,6 +154,12 @@ def bind_theano(device=None, max_usage=USAGE_THRESHOLD, verbose=True):
     if device and device != 'cpu':
         import theano.sandbox.cuda
         theano.sandbox.cuda.use(device)
+
+
+__all__ = [
+    'best_gpu',
+    'bind_theano',
+]
 
 
 if __name__ == '__main__':
