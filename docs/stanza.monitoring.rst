@@ -16,3 +16,11 @@ stanza.monitoring.experiment module
     :members:
     :special-members:
     :show-inheritance:
+
+stanza.monitoring.progress module
+-----------------------------------
+
+.. automodule:: stanza.monitoring.progress
+    :members:
+    :special-members:
+    :show-inheritance:

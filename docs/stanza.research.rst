@@ -100,14 +100,6 @@ stanza.research.pick_gpu module
     :undoc-members:
     :show-inheritance:
 
-stanza.research.progress module
--------------------------------
-
-.. automodule:: stanza.research.progress
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 stanza.research.rng module
 --------------------------
 
