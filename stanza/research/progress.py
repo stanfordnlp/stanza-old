@@ -25,35 +25,78 @@ Repetition 1 of 2, Example 3 of 3 (~100% done, ETA ...)
 Repetition 2 of 2 (~100% done, ETA ...)
 """
 
+__author__ = 'wmonroe4'
+
+
 import datetime
 import doctest
 from collections import namedtuple
 
 
 class ProgressMonitor(object):
+    '''
+    Keeps track of a hierarchy of tasks and displays percent completion
+    and estimated completion time.
+    '''
     def __init__(self, resolution=datetime.datetime.resolution):
+        '''
+        Create a `ProgressMonitor` object.
+
+        :param datetime.datetime resolution: The minimum interval at which
+            progress updates are shown. The default is to show all updates.
+            This setting can be modified after creation by assigning to
+            the `resolution` field of a `ProgressMonitor` object.
+            (Note that the global `progress.*` functions override this to
+            show updates every minute by default. This can be reset by
+            calling `progress.set_resolution(datetime.datetime.resolution)`.)
+        '''
         self.task_stack = []
         self.last_report = datetime.datetime.min
         self.resolution = resolution
         self.start_time = datetime.datetime.now()
 
     def start_task(self, name, size):
+        '''
+        Add a task to the stack. If, for example, `name` is `'Iteration'` and
+        `size` is 10, progress on that task will be shown as
+
+            ..., Iteration <p> of 10, ...
+
+        :param str name: A descriptive name for the type of subtask that is
+            being completed.
+        :param int size: The total number of subtasks to complete.
+        '''
         if len(self.task_stack) == 0:
             self.start_time = datetime.datetime.now()
         self.task_stack.append(Task(name, size, 0))
 
     def progress(self, p):
+        '''
+        Update the current progress on the task at the top of the stack.
+
+        :param int p: The current subtask number, between 0 and `size`
+            (passed to `start_task`), inclusive.
+        '''
         self.task_stack[-1] = self.task_stack[-1]._replace(progress=p)
         self.progress_report()
 
     def end_task(self):
+        '''
+        Remove the current task from the stack.
+        '''
         self.progress(self.task_stack[-1].size)
         self.task_stack.pop()
 
-    def progress_report(self):
+    def progress_report(self, force=False):
+        '''
+        Print the current progress.
+
+        :param bool force: If `True`, print the report regardless of the
+            elapsed time since the last progress report.
+        '''
         now = datetime.datetime.now()
         if (len(self.task_stack) > 1 or self.task_stack[0] > 0) and \
-                now - self.last_report < self.resolution:
+                now - self.last_report < self.resolution and not force:
             return
 
         stack_printout = ', '.join('%s %s of %s' % (t.name, t.progress, t.size)
@@ -75,6 +118,10 @@ class ProgressMonitor(object):
         self.last_report = datetime.datetime.now()
 
     def fraction_done(self, start=0.0, finish=1.0, stack=None):
+        '''
+        :return float: The estimated fraction of the overall task hierarchy
+            that has been finished. A number in the range [0.0, 1.0].
+        '''
         if stack is None:
             stack = self.task_stack
 
@@ -94,19 +141,41 @@ _global_t = ProgressMonitor(resolution=datetime.timedelta(minutes=1))
 
 
 def start_task(name, size):
+    '''
+    Call `start_task` on a global `ProgressMonitor`.
+    '''
     _global_t.start_task(name, size)
 
 
 def progress(p):
+    '''
+    Call `progress` on a global `ProgressMonitor`.
+    '''
     _global_t.progress(p)
 
 
 def end_task():
+    '''
+    Call `end_task` on a global `ProgressMonitor`.
+    '''
     _global_t.end_task()
 
 
 def set_resolution(res):
+    '''
+    Change the resolution on the global `ProgressMonitor`.
+    See `ProgressMonitor.__init__`.
+    '''
     _global_t.resolution = res
+
+
+__all__ = [
+    'ProgressMonitor',
+    'start_task',
+    'progress',
+    'end_task',
+    'set_resolution',
+]
 
 
 if __name__ == '__main__':
