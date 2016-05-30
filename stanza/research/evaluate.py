@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from . import config
 
@@ -51,6 +52,11 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
         prefix = split_prefix + (metric_name + '.' if metric_name else '')
 
         inst_outputs = metric(eval_data, predictions, scores, learner)
+        if metric_name in ['data', 'predictions', 'scores']:
+            warnings.warn('not outputting metric scores for metric "%s" because it would shadow '
+                          'another results file')
+        else:
+            config.dump(inst_outputs, '%s.%sjsons' % (metric_name, split_prefix), lines=True)
 
         mean = np.mean(inst_outputs)
         gmean = np.exp(np.log(inst_outputs).mean())
