@@ -167,7 +167,38 @@ def aic(eval_data, predictions, scores, learner):
     The standard way to aggregate this metric is to sum the resulting list.
 
     >>> learner = Learner(); learner.num_params = 1024
-    >>> aic(None, None, [np.log(0.5), np.log(0.125), np.log(0.25)], learner)
-    [2.0, 6.0, 4.0, 2048.0]
+    >>> aic(None, None, [np.log(0.5), np.log(0.125), np.log(0.25), np.log(0.5)], learner)
+    [2.0, 6.0, 4.0, 2.0, 2048.0]
     '''
     return (-2.0 * np.array(scores) / np.log(2.0)).tolist() + [2.0 * float(learner.num_params)]
+
+
+def aic_averaged(eval_data, predictions, scores, learner):
+    '''
+    Return Akaike information criterion (AIC) scores for the given
+    `learner` producing the given `scores` (log likelihoods in base e):
+
+        aic = 2 * learner.num_params - 2 * sum(log_2(exp(scores)))
+
+    The result is a list of the same length as the number of scores.
+    The penalty from the number of parameters is divided by the number of
+    scores and added to the contribution of each score; thus, `aic` and
+    `aic_averaged` will have the same mean but yield different-size lists.
+
+    The standard way to aggregate this metric is to sum the resulting list.
+
+    >>> learner = Learner(); learner.num_params = 1024
+    >>> aic_averaged(None, None, [np.log(0.5), np.log(0.125), np.log(0.25), np.log(0.5)], learner)
+    [514.0, 518.0, 516.0, 514.0]
+    '''
+    scores = np.array(scores)
+    penalty = 2.0 * float(learner.num_params) / len(scores)
+    return (penalty - 2.0 * scores / np.log(2.0)).tolist()
+
+
+METRICS = {
+    name: globals()[name]
+    for name in dir()
+    if (name not in ['np', 'corpus_bleu', 'Instance', 'Learner']
+        and not name.startswith('_'))
+}
