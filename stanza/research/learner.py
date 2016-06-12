@@ -73,7 +73,7 @@ class Learner(object):
 
         :returns: list(output_type)
         '''
-        if self._using_default_combined:
+        if hasattr(self, '_using_default_combined') and self._using_default_combined:
             raise NotImplementedError
 
         self._using_default_separate = True
@@ -95,7 +95,7 @@ class Learner(object):
 
         :returns: list(float)
         '''
-        if self._using_default_combined:
+        if hasattr(self, '_using_default_combined') and self._using_default_combined:
             raise NotImplementedError
 
         self._using_default_separate = True
@@ -127,7 +127,7 @@ class Learner(object):
 
         :returns: tuple(list(output_type), list(float))
         '''
-        if self._using_default_separate:
+        if hasattr(self, '_using_default_separate') and self._using_default_separate:
             raise NotImplementedError
 
         self._using_default_combined = True
