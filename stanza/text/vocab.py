@@ -1,7 +1,7 @@
 """
 Vocabulary module for conversion between word tokens and numerical indices.
 """
-__author__ = 'victor'
+__author__ = 'victor, kelvinguu'
 from collections import Counter, namedtuple, OrderedDict
 from itertools import izip
 import numpy as np
@@ -35,6 +35,15 @@ class Vocab(object):
 
         # assign an index for UNK
         self.add(self._unk, count=0)
+
+    def _index2word_copy(self):
+        """Get a copy of the mapping from indices to words.
+
+        :return: a list of strings
+        """
+        # TODO(kelvinguu): it would be nice to use `dict.viewkeys` so that it's not a copy,
+        # but unfortunately those are not indexable
+        return self._word2index.keys()  # works because word2index is an OrderedDict
 
     def clear(self):
         """
@@ -143,7 +152,7 @@ class Vocab(object):
 
         :return: a list of words corresponding to each index.
         """
-        index2word = self._word2index.keys()  # works because word2index is an OrderedDict
+        index2word = self._index2word_copy()
         return [index2word[i] for i in indices]
 
     @property
@@ -202,7 +211,7 @@ class Vocab(object):
         return self
 
     @classmethod
-    def from_dict(cls, word2index, unk):
+    def from_dict(cls, word2index, unk, counts=None):
         """Create Vocab from an existing string to integer dictionary.
 
         All counts are set to 0.
@@ -211,6 +220,8 @@ class Vocab(object):
                 UNK must be assigned the 0 index.
 
         :param unk: the string representing unk in word2index.
+
+        :param counts: (optional) a Counter object mapping words to counts
 
         :return: a created vocab object.
         """
@@ -235,7 +246,47 @@ class Vocab(object):
         for i in xrange(n):
             vocab.add(index2word[i])
 
+        if counts:
+            matching_entries = set(word2index.keys()) == set(counts.keys())
+            if not matching_entries:
+                raise ValueError('entries of word2index do not match counts (did you include UNK?)')
+            vocab._counts = counts
+
         return vocab
+
+    def to_file(self, file):
+        """Write vocab to a file.
+
+        :param file: a file object, e.g. as returned by calling `open`
+
+        File format:
+            word0<TAB>count0
+            word1<TAB>count1
+            ...
+
+        word with index 0 is on the 0th line and so on...
+        """
+        index2word = self._index2word_copy()
+        for word in index2word:
+            count = self._counts[word]
+            file.write('{}\t{}\n'.format(word, count))
+
+    @classmethod
+    def from_file(cls, file):
+        """Load vocab from a file.
+
+        :param file: a file object, e.g. as returned by calling `open`
+        :return: a vocab object. The 0th line of the file is assigned to index 0, and so on...
+        """
+        word2index = {}
+        counts = Counter()
+        for i, line in enumerate(file):
+            word, count_str = line.strip().split('\t')
+            word2index[word] = i
+            counts[word] = float(count_str)
+            if i == 0:
+                unk = word
+        return cls.from_dict(word2index, unk, counts)
 
 
 class EmbeddedVocab(Vocab):

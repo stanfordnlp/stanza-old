@@ -1,5 +1,6 @@
-__author__ = 'victor'
+__author__ = 'victor, kelvinguu'
 
+from collections import Counter
 from unittest import TestCase
 from stanza.text.vocab import Vocab, SennaVocab, GloveVocab
 
@@ -51,6 +52,12 @@ class TestVocab(TestCase):
         s = v.sort_by_decreasing_count()
         self.assertEqual(['unk', 'you', 'for', 'words', 'some'], list(iter(s)))
         self.assertEqual({'unk': 0, 'you': 4, 'for': 3, 'words': 2, 'some': 1}, dict(s.counts))
+
+    def test_from_file(self):
+        lines = ['unk\t10\n', 'cat\t4\n', 'bear\t6']
+        vocab = Vocab.from_file(lines)
+        self.assertEqual(vocab.counts, Counter({'unk': 10, 'cat': 4, 'bear': 6}))
+        self.assertEqual(dict(vocab._word2index), {'unk': 0, 'cat': 1, 'bear': 2})
 
 
 class TestSenna(TestVocab):
