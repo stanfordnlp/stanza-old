@@ -5,7 +5,7 @@ __author__ = 'victor, kelvinguu'
 from collections import Counter, namedtuple, OrderedDict
 from itertools import izip
 import numpy as np
-from copy import deepcopy
+from copy import deepcopy, copy
 import zipfile
 from ..util.resource import get_data_or_download
 
@@ -147,12 +147,18 @@ class Vocab(object):
         index2word = self._index2word_copy()
         return [index2word[i] for i in indices]
 
-    @property
-    def counts(self):
+    def count(self, w):
+        """Get the count for a word.
+
+        :param w: a string
         """
-        :return: a counter containing the number of occurrences of each word.
+        return self._counts[w]
+
+    def counts_copy(self):
         """
-        return self._counts
+        :return: a copy of the counter containing the number of occurrences of each word.
+        """
+        return copy(self._counts)
 
     def prune_rares(self, cutoff=2):
         """
