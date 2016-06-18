@@ -116,6 +116,9 @@ class Vocab(BaseVocab, OrderedDict):
         index2word = self._index2word_copy()
         return index2word[i]
 
+    def freeze(self):
+        return FrozenVocab(self)
+
     def count(self, w):
         """Get the count for a word.
 
@@ -252,6 +255,20 @@ class Vocab(BaseVocab, OrderedDict):
             if i == 0:
                 unk = word
         return cls.from_dict(word2index, unk, counts)
+
+
+class FrozenVocab(BaseVocab):
+    def __init__(self, vocab):
+        self._word2index = dict(vocab)  # make a copy
+        self._index2word = vocab._index2word_copy()
+        # since this vocab is frozen, we do not need to worry about
+        # word2index and index2word becoming inconsistent
+
+    def word2index(self, w):
+        return self._word2index.get(w, 0)
+
+    def index2word(self, i):
+        return self._index2word[i]
 
 
 class EmbeddedVocab(Vocab):
