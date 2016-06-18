@@ -132,20 +132,6 @@ class Vocab(BaseVocab, OrderedDict):
         """
         return copy(self._counts)
 
-    def _refresh_index2word_cache(self):
-        try:
-            self._index2word_cache
-        except AttributeError:
-            # create if it doesn't exist
-            self._index2word_cache = self._compute_index2word()
-
-        # update if it is out of date
-        if len(self._index2word_cache) != len(self):
-            self._index2word_cache = self._compute_index2word()
-
-    def _compute_index2word(self):
-        return self.keys()  # works because self is an OrderedDict
-
     @property
     def _index2word(self):
         """Mapping from indices to words.
@@ -155,7 +141,19 @@ class Vocab(BaseVocab, OrderedDict):
         :return: a list of strings
         """
         # TODO(kelvinguu): it would be nice to just use `dict.viewkeys`, but unfortunately those are not indexable
-        self._refresh_index2word_cache()
+
+        compute_index2word = lambda: self.keys()  # this works because self is an OrderedDict
+
+        # create if it doesn't exist
+        try:
+            self._index2word_cache
+        except AttributeError:
+            self._index2word_cache = compute_index2word()
+
+        # update if it is out of date
+        if len(self._index2word_cache) != len(self):
+            self._index2word_cache = compute_index2word()
+
         return self._index2word_cache
 
     def prune_rares(self, cutoff=2):
