@@ -20,6 +20,12 @@ class Embeddings(object):
         self.array = array
         self.vocab = vocab
 
+    def to_dict(self):
+        d = {}
+        for word, idx in self.vocab.iteritems():
+            d[word] = self.array[idx]
+        return d
+
     def to_files(self, array_file, vocab_file):
         logging.info('Writing array...')
         np.save(array_file, self.array)
