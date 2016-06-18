@@ -2,6 +2,8 @@
 Vocabulary module for conversion between word tokens and numerical indices.
 """
 __author__ = 'victor, kelvinguu'
+
+from abc import ABCMeta, abstractmethod
 from collections import Counter, namedtuple, OrderedDict
 from itertools import izip
 import numpy as np
@@ -10,7 +12,37 @@ import zipfile
 from ..util.resource import get_data_or_download
 
 
-class Vocab(OrderedDict):
+class BaseVocab(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def word2index(self, w):
+        raise NotImplementedError
+
+    @abstractmethod
+    def index2word(self, i):
+        raise NotImplementedError
+
+    def words2indices(self, words):
+        """
+        Convert a list of words into a list of indices.
+
+        :param words: an iterable of words to map to indices.
+        :return: the corresponding indices for each word.
+        """
+        return [self.word2index(w) for w in words]
+
+    def indices2words(self, indices):
+        """
+        Convert a list of indices into a list of words.
+
+        :param words: an iterable of ints to map to words.
+        :return: the corresponding words for each int.
+        """
+        return [self.index2word(i) for i in indices]
+
+
+class Vocab(BaseVocab, OrderedDict):
     """A mapping between words and numerical indices. This class is used to facilitate the creation of word embedding matrices.
 
     Example:
@@ -30,7 +62,6 @@ class Vocab(OrderedDict):
         :param unk: string to represent the unknown word (UNK). It is always represented by the 0 index.
         """
         super(Vocab, self).__init__()
-
         self._counts = Counter()
         self._unk = unk
 
@@ -45,16 +76,18 @@ class Vocab(OrderedDict):
         # TODO(kelvinguu): it would be nice to use `dict.viewkeys` so that it's not a copy,
         # but unfortunately those are not indexable
         return self.keys()  # works because self is an OrderedDict
-
-    def __str__(self):
-        return 'Vocab(%d words)' % len(self)
-
     def __getitem__(self, word):
         """Get the index for a word.
 
         If the word is unknown, the index for UNK is returned.
         """
         return self.get(word, 0)
+
+    def __setitem__(self, key, value, **kwargs):
+        raise NotImplementedError('Use add method instead.')
+
+    def __str__(self):
+        return 'Vocab(%d words)' % len(self)
 
     def add(self, word, count=1):
         """Add a word to the vocabulary and return its index.
@@ -83,26 +116,13 @@ class Vocab(OrderedDict):
         """
         return [self.add(w) for w in words]
 
-    def words2indices(self, words):
-        """
-        Convert a list of words into a list of indices.
+    def word2index(self, w):
+        return self[w]
 
-        :param words: an iterable of words to map to indices.
-
-        :return: the corresponding indices for each word. If a word is not found in the vocabulary then the unknown index will be returned for it.
-        """
-        return [self[w] for w in words]
-
-    def indices2words(self, indices):
-        """
-        Converts a list of indices into a list of words.
-
-        :param indices: indices for which to retrieve words.
-
-        :return: a list of words corresponding to each index.
-        """
+    def index2word(self, i):
+        # TODO(kelvin): inefficient
         index2word = self._index2word_copy()
-        return [index2word[i] for i in indices]
+        return index2word[i]
 
     def count(self, w):
         """Get the count for a word.
