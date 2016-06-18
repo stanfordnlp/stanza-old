@@ -57,7 +57,7 @@ class TestVocab(TestCase):
         lines = ['unk\t10\n', 'cat\t4\n', 'bear\t6']
         vocab = Vocab.from_file(lines)
         self.assertEqual(vocab.counts_copy(), Counter({'unk': 10, 'cat': 4, 'bear': 6}))
-        self.assertEqual(dict(vocab._word2index), {'unk': 0, 'cat': 1, 'bear': 2})
+        self.assertEqual(dict(vocab), {'unk': 0, 'cat': 1, 'bear': 2})
 
 
 class TestSenna(TestVocab):

@@ -10,7 +10,7 @@ import zipfile
 from ..util.resource import get_data_or_download
 
 
-class Vocab(object):
+class Vocab(OrderedDict):
     """A mapping between words and numerical indices. This class is used to facilitate the creation of word embedding matrices.
 
     Example:
@@ -29,7 +29,8 @@ class Vocab(object):
 
         :param unk: string to represent the unknown word (UNK). It is always represented by the 0 index.
         """
-        self._word2index = OrderedDict()
+        super(Vocab, self).__init__()
+
         self._counts = Counter()
         self._unk = unk
 
@@ -43,61 +44,17 @@ class Vocab(object):
         """
         # TODO(kelvinguu): it would be nice to use `dict.viewkeys` so that it's not a copy,
         # but unfortunately those are not indexable
-        return self._word2index.keys()  # works because word2index is an OrderedDict
-
-    def __iter__(self):
-        """
-        :return: An iterator over the (word, index) tuples in the vocabulary
-        """
-        return iter(self._word2index)
-
-    def iteritems(self):
-        """
-        :return: An iterator over the (word, index) tuples in the vocabulary
-        """
-        return self._word2index.iteritems()
-
-    def items(self):
-        """
-        :return: A list of (word, index) pairs from the vocabulary.
-        """
-        return self._word2index.items()
-
-    def keys(self):
-        """
-        :return: A list of words in the vocabulary.
-        """
-        return self._word2index.keys()
-
-    def iterkeys(self):
-        """
-        :return: An iterator over the words in the vocabulary.
-        """
-        return self._word2index.iterkeys()
-
-    def __repr__(self):
-        """Represent Vocab as a dictionary from words to indices."""
-        return str(self._word2index)
+        return self.keys()  # works because self is an OrderedDict
 
     def __str__(self):
-        return 'Vocab(%d words)' % len(self._word2index)
-
-    def __len__(self):
-        """Get total number of entries in vocab (including UNK)."""
-        return len(self._word2index)
+        return 'Vocab(%d words)' % len(self)
 
     def __getitem__(self, word):
         """Get the index for a word.
 
         If the word is unknown, the index for UNK is returned.
         """
-        return self._word2index.get(word, 0)
-
-    def __contains__(self, word):
-        """
-        :return: whether word is in the vocabulary
-        """
-        return word in self._word2index
+        return self.get(word, 0)
 
     def add(self, word, count=1):
         """Add a word to the vocabulary and return its index.
@@ -111,10 +68,10 @@ class Vocab(object):
         WARNING: this function assumes that if the Vocab currently has N words, then
         there is a perfect bijection between these N words and the integers 0 through N-1.
         """
-        if word not in self._word2index:
-            self._word2index[word] = len(self._word2index)
+        if word not in self:
+            self[word] = len(self)
         self._counts[word] += count
-        return self._word2index[word]
+        return self[word]
 
     def update(self, words):
         """
@@ -172,7 +129,7 @@ class Vocab(object):
         """
         # make a deep copy and reset its contents
         v = self.__class__(unk=self._unk)
-        for w in self._word2index:
+        for w in self:
             if self._counts[w] >= cutoff or w == self._unk:  # don't remove unk
                 v.add(w, count=self._counts[w])
         return v
