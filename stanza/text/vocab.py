@@ -68,14 +68,6 @@ class Vocab(BaseVocab, OrderedDict):
         # assign an index for UNK
         self.add(self._unk, count=0)
 
-    def _index2word_copy(self):
-        """Get a copy of the mapping from indices to words.
-
-        :return: a list of strings
-        """
-        # TODO(kelvinguu): it would be nice to use `dict.viewkeys` so that it's not a copy,
-        # but unfortunately those are not indexable
-        return self.keys()  # works because self is an OrderedDict
     def __getitem__(self, word):
         """Get the index for a word.
 
@@ -136,6 +128,15 @@ class Vocab(BaseVocab, OrderedDict):
         :return: a copy of the counter containing the number of occurrences of each word.
         """
         return copy(self._counts)
+
+    def _index2word_copy(self):
+        """Get a copy of the mapping from indices to words.
+
+        :return: a list of strings
+        """
+        # TODO(kelvinguu): it would be nice to use `dict.viewkeys` so that it's not a copy,
+        # but unfortunately those are not indexable
+        return self.keys()  # works because self is an OrderedDict
 
     def prune_rares(self, cutoff=2):
         """
