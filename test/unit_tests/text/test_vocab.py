@@ -55,9 +55,26 @@ class TestVocab(TestCase):
 
     def test_from_file(self):
         lines = ['unk\t10\n', 'cat\t4\n', 'bear\t6']
-        vocab = Vocab.from_file(lines)
+        vocab = self.Vocab.from_file(lines)
         self.assertEqual(vocab.counts_copy(), Counter({'unk': 10, 'cat': 4, 'bear': 6}))
         self.assertEqual(dict(vocab), {'unk': 0, 'cat': 1, 'bear': 2})
+
+
+class TestFrozen:
+
+    def test_words2indices(self):
+        v = Vocab('unk')
+        words = ['i', 'like', 'pie']
+        v.update(words)
+        v = v.freeze()
+        assert v.words2indices(words) == [1, 2, 3]
+        assert v.words2indices(['i', 'said']) == [1, 0]
+
+    def test_indices2words(self):
+        v = Vocab(unk='unk')
+        v.update(['i', 'like', 'pie'])
+        words = v.indices2words([1, 2, 3, 0])
+        assert words == ['i', 'like', 'pie', 'unk']
 
 
 class TestSenna(TestVocab):
