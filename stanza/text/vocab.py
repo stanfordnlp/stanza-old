@@ -17,10 +17,12 @@ class BaseVocab(object):
 
     @abstractmethod
     def word2index(self, w):
+        """Convert string to integer."""
         raise NotImplementedError
 
     @abstractmethod
     def index2word(self, i):
+        """Convert integer to string."""
         raise NotImplementedError
 
     def words2indices(self, words):
@@ -112,9 +114,7 @@ class Vocab(BaseVocab, OrderedDict):
         return self[w]
 
     def index2word(self, i):
-        # TODO(kelvin): inefficient
-        index2word = self._index2word_copy()
-        return index2word[i]
+        return self._index2word[i]
 
     def freeze(self):
         return FrozenVocab(self)
@@ -132,14 +132,31 @@ class Vocab(BaseVocab, OrderedDict):
         """
         return copy(self._counts)
 
-    def _index2word_copy(self):
-        """Get a copy of the mapping from indices to words.
+    def _refresh_index2word_cache(self):
+        try:
+            self._index2word_cache
+        except AttributeError:
+            # create if it doesn't exist
+            self._index2word_cache = self._compute_index2word()
+
+        # update if it is out of date
+        if len(self._index2word_cache) != len(self):
+            self._index2word_cache = self._compute_index2word()
+
+    def _compute_index2word(self):
+        return self.keys()  # works because self is an OrderedDict
+
+    @property
+    def _index2word(self):
+        """Mapping from indices to words.
+
+        WARNING: this may go out-of-date, because it is a copy, not a view into the Vocab.
 
         :return: a list of strings
         """
-        # TODO(kelvinguu): it would be nice to use `dict.viewkeys` so that it's not a copy,
-        # but unfortunately those are not indexable
-        return self.keys()  # works because self is an OrderedDict
+        # TODO(kelvinguu): it would be nice to just use `dict.viewkeys`, but unfortunately those are not indexable
+        self._refresh_index2word_cache()
+        return self._index2word_cache
 
     def prune_rares(self, cutoff=2):
         """
@@ -234,8 +251,7 @@ class Vocab(BaseVocab, OrderedDict):
 
         word with index 0 is on the 0th line and so on...
         """
-        index2word = self._index2word_copy()
-        for word in index2word:
+        for word in self._index2word:
             count = self._counts[word]
             file.write('{}\t{}\n'.format(word, count))
 
@@ -260,7 +276,7 @@ class Vocab(BaseVocab, OrderedDict):
 class FrozenVocab(BaseVocab):
     def __init__(self, vocab):
         self._word2index = dict(vocab)  # make a copy
-        self._index2word = vocab._index2word_copy()
+        self._index2word = copy(vocab._index2word)
         # since this vocab is frozen, we do not need to worry about
         # word2index and index2word becoming inconsistent
 
