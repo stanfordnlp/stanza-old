@@ -45,14 +45,6 @@ class Vocab(object):
         # but unfortunately those are not indexable
         return self._word2index.keys()  # works because word2index is an OrderedDict
 
-    def clear(self):
-        """
-        Resets all mappings and counts. The unk token is retained.
-        """
-        self._word2index.clear()
-        self._counts.clear()
-        self.add(self._unk, count=0)
-
     def __iter__(self):
         """
         :return: An iterator over the (word, index) tuples in the vocabulary
@@ -173,8 +165,7 @@ class Vocab(object):
         NOTE: UNK is never pruned.
         """
         # make a deep copy and reset its contents
-        v = deepcopy(self)
-        v.clear()
+        v = self.__class__(unk=self._unk)
         for w in self._word2index:
             if self._counts[w] >= cutoff or w == self._unk:  # don't remove unk
                 v.add(w, count=self._counts[w])
@@ -199,16 +190,6 @@ class Vocab(object):
             if word != self._unk:
                 v.add(word, count=count)
         return v
-
-    def clear_counts(self):
-        """
-        Removes counts for all tokens.
-
-        :return: the vocabulary object.
-        """
-        # TODO: this removes the entries too, rather than setting them to 0
-        self._counts.clear()
-        return self
 
     @classmethod
     def from_dict(cls, word2index, unk, counts=None):
