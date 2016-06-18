@@ -5,7 +5,7 @@ __author__ = 'victor, kelvinguu'
 from collections import Counter, namedtuple, OrderedDict
 from itertools import izip
 import numpy as np
-from copy import deepcopy, copy
+from copy import copy
 import zipfile
 from ..util.resource import get_data_or_download
 
