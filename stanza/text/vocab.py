@@ -94,7 +94,7 @@ class Vocab(BaseVocab, OrderedDict):
         there is a perfect bijection between these N words and the integers 0 through N-1.
         """
         if word not in self:
-            self[word] = len(self)
+            super(Vocab, self).__setitem__(word, len(self))
         self._counts[word] += count
         return self[word]
 
