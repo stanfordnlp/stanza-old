@@ -126,12 +126,6 @@ class Vocab(BaseVocab, OrderedDict):
         """
         return self._counts[w]
 
-    def counts_copy(self):
-        """
-        :return: a copy of the counter containing the number of occurrences of each word.
-        """
-        return copy(self._counts)
-
     @property
     def _index2word(self):
         """Mapping from indices to words.

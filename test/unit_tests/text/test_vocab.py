@@ -42,21 +42,21 @@ class TestVocab(TestCase):
     def test_prune_rares(self):
         v = self.Vocab(unk='unk')
         v.update(['hi'] * 3 + ['bye'] * 5)
-        self.assertEqual({'hi': 3, 'bye': 5, 'unk': 0}, dict(v.counts_copy()))
+        self.assertEqual({'hi': 3, 'bye': 5, 'unk': 0}, dict(v._counts))
         p = v.prune_rares(cutoff=4)
-        self.assertEqual({'bye': 5, 'unk': 0}, dict(p.counts_copy()))
+        self.assertEqual({'bye': 5, 'unk': 0}, dict(p._counts))
 
     def test_sort_by_decreasing_count(self):
         v = self.Vocab(unk='unk')
         v.update('some words words for for for you you you you'.split())
         s = v.sort_by_decreasing_count()
         self.assertEqual(['unk', 'you', 'for', 'words', 'some'], list(iter(s)))
-        self.assertEqual({'unk': 0, 'you': 4, 'for': 3, 'words': 2, 'some': 1}, dict(s.counts_copy()))
+        self.assertEqual({'unk': 0, 'you': 4, 'for': 3, 'words': 2, 'some': 1}, dict(s._counts))
 
     def test_from_file(self):
         lines = ['unk\t10\n', 'cat\t4\n', 'bear\t6']
         vocab = self.Vocab.from_file(lines)
-        self.assertEqual(vocab.counts_copy(), Counter({'unk': 10, 'cat': 4, 'bear': 6}))
+        self.assertEqual(vocab._counts, Counter({'unk': 10, 'cat': 4, 'bear': 6}))
         self.assertEqual(dict(vocab), {'unk': 0, 'cat': 1, 'bear': 2})
 
 
