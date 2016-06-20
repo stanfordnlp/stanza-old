@@ -76,10 +76,8 @@ class Embeddings(object):
     def _path_prefix_to_files(path_prefix, mode):
         array_path = path_prefix + '.npy'
         vocab_path = path_prefix + '.vocab'
-        print 'Starting'
         with open(array_path, mode) as array_file, open(vocab_path, mode) as vocab_file:
             yield array_file, vocab_file
-        print 'Done'
 
     def to_file_path(self, path_prefix):
         """Write the embedding matrix and the vocab to <path_prefix>.npy and <path_prefix>.vocab.
