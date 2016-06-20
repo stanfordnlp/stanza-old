@@ -1,4 +1,4 @@
-__author__ = 'victor, wmonroe4'
+__author__ = 'victor, wmonroe4, kelvinguu'
 
 from distutils.core import setup, Command
 
@@ -14,7 +14,11 @@ class UnitTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['nosetests', '--with-doctest', 'stanza', 'test/unit_tests'])
+        errno = subprocess.call(['py.test', '--doctest-modules',
+                                 '--ignore=stanza/research/pick_gpu.py',
+                                 '--ignore=stanza/research/progress.py',
+                                 '--ignore=stanza/research/summary.py',
+                                 'stanza', 'test/unit_tests'])
         raise SystemExit(errno)
 
 
@@ -29,7 +33,7 @@ class SlowTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['nosetests', '--with-doctest', 'test/slow_tests'])
+        errno = subprocess.call(['py.test', '--doctest-modules', 'test/slow_tests'])
         raise SystemExit(errno)
 
 
@@ -44,7 +48,7 @@ class AllTest(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call(['nosetests', '--with-doctest'])
+        errno = subprocess.call(['py.test', '--doctest-modules'])
         raise SystemExit(errno)
 
 
