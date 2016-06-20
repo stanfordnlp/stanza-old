@@ -26,6 +26,10 @@ def test_to_dict(embeddings, dict_embeddings):
     assert d == dict_embeddings
 
 
+def test_from_dict(embeddings, dict_embeddings):
+    emb = Embeddings.from_dict(dict_embeddings, 'unk')
+    assert emb.to_dict() == dict_embeddings
+
 
 def test_get_item(embeddings):
     assert embeddings['what'].tolist() == [3, 4, 5]

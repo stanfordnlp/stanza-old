@@ -35,6 +35,16 @@ class Embeddings(object):
             d[word] = self.array[idx].tolist()
         return d
 
+    @classmethod
+    def from_dict(cls, d, unk):
+        vocab = Vocab(unk)
+        vocab.update(d)
+        vecs = [None] * len(vocab)
+        for key, vec in d.iteritems():
+            vecs[vocab[key]] = vec
+        array = np.array(vecs)
+        return cls(array, vocab)
+
     def to_files(self, array_file, vocab_file):
         """Write the embedding matrix and the vocab to files.
 
