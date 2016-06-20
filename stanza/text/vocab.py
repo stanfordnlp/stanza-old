@@ -5,7 +5,6 @@ __author__ = 'victor, kelvinguu'
 
 from abc import ABCMeta, abstractmethod
 from collections import Counter, namedtuple, OrderedDict
-from itertools import izip
 import numpy as np
 from copy import copy
 import zipfile
@@ -345,7 +344,7 @@ class SennaVocab(EmbeddedVocab):
         E = rand((len(self), self.n_dim)).astype(dtype)
 
         seen = []
-        for word_emb in izip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
+        for word_emb in zip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
             w, e = word_emb
             if w in self:
                 seen += [w]

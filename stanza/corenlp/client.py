@@ -36,4 +36,4 @@ class Client(object):
     """
     properties = properties or {}
     r = requests.get(self.server, params={'properties': str(properties)}, data=text)
-    return r.json()
+    return r.json(strict=False)
