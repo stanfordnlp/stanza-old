@@ -231,10 +231,10 @@ class Vocab(BaseVocab, OrderedDict):
 
         return vocab
 
-    def to_file(self, file):
+    def to_file(self, f):
         """Write vocab to a file.
 
-        :param file: a file object, e.g. as returned by calling `open`
+        :param (file) f: a file object, e.g. as returned by calling `open`
 
         File format:
             word0<TAB>count0
@@ -245,18 +245,18 @@ class Vocab(BaseVocab, OrderedDict):
         """
         for word in self._index2word:
             count = self._counts[word]
-            file.write('{}\t{}\n'.format(word, count))
+            f.write('{}\t{}\n'.format(word, count))
 
     @classmethod
-    def from_file(cls, file):
+    def from_file(cls, f):
         """Load vocab from a file.
 
-        :param file: a file object, e.g. as returned by calling `open`
+        :param (file) f: a file object, e.g. as returned by calling `open`
         :return: a vocab object. The 0th line of the file is assigned to index 0, and so on...
         """
         word2index = {}
         counts = Counter()
-        for i, line in enumerate(file):
+        for i, line in enumerate(f):
             word, count_str = line.strip().split('\t')
             word2index[word] = i
             counts[word] = float(count_str)
