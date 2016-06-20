@@ -32,7 +32,7 @@ class Embeddings(object):
         """
         d = {}
         for word, idx in self.vocab.iteritems():
-            d[word] = self.array[idx]
+            d[word] = self.array[idx].tolist()
         return d
 
     def to_files(self, array_file, vocab_file):

@@ -13,14 +13,18 @@ def embeddings():
     return Embeddings(array, v)
 
 
-def test_to_dict(embeddings):
-    correct = {'a': [6, 7, 8],
-               'show': [9, 10, 11],
-               'unk': [0, 1, 2],
-               'what': [3, 4, 5]}
+@pytest.fixture
+def dict_embeddings():
+    return {'a': [6, 7, 8],
+            'show': [9, 10, 11],
+            'unk': [0, 1, 2],
+            'what': [3, 4, 5]}
+
+
+def test_to_dict(embeddings, dict_embeddings):
     d = embeddings.to_dict()
-    d = {k: v.tolist() for k, v in d.items()}  # convert arrays to list for easy comparison
-    assert d == correct
+    assert d == dict_embeddings
+
 
 
 def test_get_item(embeddings):
