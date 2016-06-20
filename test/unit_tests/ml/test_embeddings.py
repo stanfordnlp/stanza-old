@@ -21,3 +21,7 @@ def test_to_dict(embeddings):
     d = embeddings.to_dict()
     d = {k: v.tolist() for k, v in d.items()}  # convert arrays to list for easy comparison
     assert d == correct
+
+
+def test_get_item(embeddings):
+    assert embeddings['what'].tolist() == [3, 4, 5]

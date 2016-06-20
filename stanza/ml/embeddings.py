@@ -7,7 +7,10 @@ from stanza.text import Vocab
 
 
 class Embeddings(object):
+    """A map from strings to vectors.
 
+    Vectors are efficiently stored in a matrix.
+    """
     def __init__(self, array, vocab):
         """Create embeddings object.
 
@@ -17,6 +20,10 @@ class Embeddings(object):
         assert array.shape[0] == len(vocab)  # entries line up
         self.array = array
         self.vocab = vocab
+
+    def __getitem__(self, w):
+        idx = self.vocab.word2index(w)
+        return self.array[idx]
 
     def to_dict(self):
         """Convert to dictionary.
