@@ -11,22 +11,29 @@ class Embeddings(object):
     def __init__(self, array, vocab):
         """Create embeddings object.
 
-        :param array: a numpy array
-        :param vocab: a Vocab object
+        :param (np.array) array: has shape (vocab_size, embed_dim)
+        :param (Vocab) vocab: a Vocab object
         """
-        assert isinstance(array, np.ndarray)
-        assert isinstance(vocab, Vocab)
         assert array.shape[0] == len(vocab)  # entries line up
         self.array = array
         self.vocab = vocab
 
     def to_dict(self):
+        """Convert to dictionary.
+
+        :return (dict): A dict mapping from strings to vectors.
+        """
         d = {}
         for word, idx in self.vocab.iteritems():
             d[word] = self.array[idx]
         return d
 
     def to_files(self, array_file, vocab_file):
+        """Write the embedding matrix and the vocab to files.
+
+        :param (file) array_file: file to write array to
+        :param (file) vocab_file: file to write vocab to
+        """
         logging.info('Writing array...')
         np.save(array_file, self.array)
         logging.info('Writing vocab...')
@@ -34,6 +41,13 @@ class Embeddings(object):
 
     @classmethod
     def from_files(cls, array_file, vocab_file):
+        """Load the embedding matrix and the vocab from files.
+
+        :param (file) array_file: file to read array from
+        :param (file) vocab_file: file to read vocab from
+
+        :return (Embeddings): an Embeddings object
+        """
         logging.info('Loading array...')
         array = np.load(array_file)
         logging.info('Loading vocab...')
@@ -42,7 +56,7 @@ class Embeddings(object):
 
     @staticmethod
     @contextmanager
-    def path_prefix_to_files(path_prefix, mode):
+    def _path_prefix_to_files(path_prefix, mode):
         array_path = path_prefix + '.npy'
         vocab_path = path_prefix + '.vocab'
         print 'Starting'
@@ -51,10 +65,18 @@ class Embeddings(object):
         print 'Done'
 
     def to_file_path(self, path_prefix):
-        with self.path_prefix_to_files(path_prefix, 'w') as (array_file, vocab_file):
+        """Write the embedding matrix and the vocab to <path_prefix>.npy and <path_prefix>.vocab.
+
+        :param (str) path_prefix: path prefix of the saved files
+        """
+        with self._path_prefix_to_files(path_prefix, 'w') as (array_file, vocab_file):
             self.to_files(array_file, vocab_file)
 
     @classmethod
     def from_file_path(self, path_prefix):
-        with self.path_prefix_to_files(path_prefix, 'r') as (array_file, vocab_file):
+        """Load the embedding matrix and the vocab from <path_prefix>.npy and <path_prefix>.vocab.
+
+        :param (str) path_prefix: path prefix of the saved files
+        """
+        with self._path_prefix_to_files(path_prefix, 'r') as (array_file, vocab_file):
             return self.from_files(array_file, vocab_file)
