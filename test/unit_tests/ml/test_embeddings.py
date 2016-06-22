@@ -33,3 +33,15 @@ def test_from_dict(embeddings, dict_embeddings):
 
 def test_get_item(embeddings):
     assert embeddings['what'].tolist() == [3, 4, 5]
+
+
+def test_inner_products(embeddings):
+    query = np.array([3, 2, 1])
+    scores = embeddings.inner_products(query)
+    correct = {
+        'a': 18 + 14 + 8,
+        'show': 27 + 20 + 11,
+        'unk': 2 + 2,
+        'what': 9 + 8 + 5,
+    }
+    assert scores == correct

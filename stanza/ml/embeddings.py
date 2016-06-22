@@ -30,6 +30,21 @@ class Embeddings(object):
     def __contains__(self, item):
         return item in self.vocab
 
+    def inner_products(self, vec):
+        """Get the inner product of a vector with every embedding.
+
+        Args:
+            vector (np.array): the query vector
+
+        Returns (Dict[str, float]): a map from word to inner product value.
+        """
+        scores = self.array.dot(vec)
+        score_map = {}
+        assert len(scores.shape) == 1
+        for i in range(len(scores)):
+            score_map[self.vocab.index2word(i)] = scores[i]
+        return score_map
+
     def to_dict(self):
         """Convert to dictionary.
 
