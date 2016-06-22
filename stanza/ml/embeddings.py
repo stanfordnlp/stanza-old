@@ -9,7 +9,9 @@ from stanza.text import Vocab
 class Embeddings(object):
     """A map from strings to vectors.
 
-    Vectors are efficiently stored in a matrix.
+    Vectors are stored as a numpy array.
+    Vectors are saved/loaded from disk using numpy.load, which is roughly 3-4 times faster
+    than reading a text file.
     """
     def __init__(self, array, vocab):
         """Create embeddings object.
@@ -24,6 +26,9 @@ class Embeddings(object):
     def __getitem__(self, w):
         idx = self.vocab.word2index(w)
         return self.array[idx]
+
+    def __contains__(self, item):
+        return item in self.vocab
 
     def to_dict(self):
         """Convert to dictionary.
