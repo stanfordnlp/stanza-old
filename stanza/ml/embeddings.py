@@ -19,6 +19,7 @@ class Embeddings(object):
         :param (np.array) array: has shape (vocab_size, embed_dim)
         :param (Vocab) vocab: a Vocab object
         """
+        assert len(array.shape) == 2
         assert array.shape[0] == len(vocab)  # entries line up
         self.array = array
         self.vocab = vocab
@@ -57,6 +58,7 @@ class Embeddings(object):
 
     @classmethod
     def from_dict(cls, d, unk):
+        assert unk in d
         vocab = Vocab(unk)
         vocab.update(d)
         vecs = [None] * len(vocab)
