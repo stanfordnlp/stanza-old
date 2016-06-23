@@ -61,9 +61,11 @@ class Embeddings(object):
         assert unk in d
         vocab = Vocab(unk)
         vocab.update(d)
-        vecs = [None] * len(vocab)
-        for key, vec in d.iteritems():
-            vecs[vocab[key]] = vec
+        vecs = []
+        for i in range(len(vocab)):
+            word = vocab.index2word(i)
+            vec = d[word]
+            vecs.append(vec)
         array = np.array(vecs)
         return cls(array, vocab)
 
