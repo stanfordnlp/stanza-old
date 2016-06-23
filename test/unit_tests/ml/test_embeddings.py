@@ -45,3 +45,6 @@ def test_inner_products(embeddings):
         'what': 9 + 8 + 5,
     }
     assert scores == correct
+
+    knn = embeddings.k_nearest_neighbors(query, 3)
+    assert knn == [('show', 58), ('a', 40), ('what', 22)]

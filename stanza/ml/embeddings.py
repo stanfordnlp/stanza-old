@@ -46,6 +46,20 @@ class Embeddings(object):
             score_map[self.vocab.index2word(i)] = scores[i]
         return score_map
 
+    def k_nearest_neighbors(self, vec, k):
+        """Get the k nearest neighbors of a vector.
+
+        Args:
+            vec (np.array): query vector
+            k (int): number of top neighbors to return
+
+        Returns (List[Tuple[str, float]]): a list of (word, score) pairs
+        """
+        # TODO(kelvin): need sub-linear implementation
+        score_map = self.inner_products(vec)
+        nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
+        return nbr_score_pairs[:k]
+
     def to_dict(self):
         """Convert to dictionary.
 
