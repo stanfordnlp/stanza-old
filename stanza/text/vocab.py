@@ -82,6 +82,14 @@ class Vocab(BaseVocab, OrderedDict):
     def __str__(self):
         return 'Vocab(%d words)' % len(self)
 
+    def __eq__(self, other):
+        if isinstance(other, Vocab):
+            return super(Vocab, self).__eq__(other)
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def add(self, word, count=1):
         """Add a word to the vocabulary and return its index.
 
