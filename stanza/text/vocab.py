@@ -128,7 +128,8 @@ class Vocab(BaseVocab, OrderedDict):
     def subset(self, words):
         """Get a new Vocab containing only the specified subset of words.
 
-        Indices are remapped. Counts are preserved.
+        If w is in words, but not in the original vocab, it will NOT be in the subset vocab.
+        Indices will be in the order of `words`. Counts from the original vocab are preserved.
 
         :return (Vocab): a new Vocab object
         """
@@ -136,7 +137,8 @@ class Vocab(BaseVocab, OrderedDict):
         unique = lambda seq: len(set(seq)) == len(seq)
         assert unique(words)
         for w in words:
-            v.add(w, count=self.count(w))
+            if w in self:
+                v.add(w, count=self.count(w))
         return v
 
     @property
