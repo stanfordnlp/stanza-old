@@ -125,6 +125,20 @@ class Vocab(BaseVocab, OrderedDict):
         """
         return self._counts[w]
 
+    def subset(self, words):
+        """Get a new Vocab containing only the specified subset of words.
+
+        Indices are remapped. Counts are preserved.
+
+        :return (Vocab): a new Vocab object
+        """
+        v = self.__class__(unk=self._unk)
+        unique = lambda seq: len(set(seq)) == len(seq)
+        assert unique(words)
+        for w in words:
+            v.add(w, count=self.count(w))
+        return v
+
     @property
     def _index2word(self):
         """Mapping from indices to words.
@@ -151,7 +165,8 @@ class Vocab(BaseVocab, OrderedDict):
 
     def prune_rares(self, cutoff=2):
         """
-        returns a **new** `Vocab` object that is similar to this one but with rare words removed. Note that the indices in the new `Vocab` will be remapped (because rare words will have been removed).
+        returns a **new** `Vocab` object that is similar to this one but with rare words removed.
+        Note that the indices in the new `Vocab` will be remapped (because rare words will have been removed).
 
         :param cutoff: words occuring less than this number of times are removed from the vocabulary.
 
@@ -159,12 +174,8 @@ class Vocab(BaseVocab, OrderedDict):
 
         NOTE: UNK is never pruned.
         """
-        # make a deep copy and reset its contents
-        v = self.__class__(unk=self._unk)
-        for w in self:
-            if self._counts[w] >= cutoff or w == self._unk:  # don't remove unk
-                v.add(w, count=self._counts[w])
-        return v
+        keep = lambda w: self.count(w) >= cutoff or w == self._unk
+        return self.subset([w for w in self if keep(w)])
 
     def sort_by_decreasing_count(self):
         """Return a **new** `Vocab` object that is ordered by decreasing count.
@@ -176,14 +187,8 @@ class Vocab(BaseVocab, OrderedDict):
 
         NOTE: UNK will remain at index 0, regardless of its frequency.
         """
-        v = self.__class__(unk=self._unk)  # use __class__ to support subclasses
-
-        # UNK gets index 0
-        v.add(self._unk, count=self._counts[self._unk])
-
-        for word, count in self._counts.most_common():
-            if word != self._unk:
-                v.add(word, count=count)
+        words = [w for w, ct in self._counts.most_common()]
+        v = self.subset(words)
         return v
 
     @classmethod
