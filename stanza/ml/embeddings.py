@@ -31,6 +31,12 @@ class Embeddings(object):
     def __contains__(self, item):
         return item in self.vocab
 
+    def subset(self, words):
+        sub_vocab = self.vocab.subset(words)
+        idxs = [self.vocab[w] for w in sub_vocab]
+        sub_array = self.array[idxs]
+        return self.__class__(sub_array, sub_vocab)
+
     def inner_products(self, vec):
         """Get the inner product of a vector with every embedding.
 

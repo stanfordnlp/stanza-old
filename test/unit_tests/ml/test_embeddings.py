@@ -48,3 +48,8 @@ def test_inner_products(embeddings):
 
     knn = embeddings.k_nearest_neighbors(query, 3)
     assert knn == [('show', 58), ('a', 40), ('what', 22)]
+
+
+def test_subset(embeddings):
+    sub = embeddings.subset(['a', 'what'])
+    assert sub.to_dict() == {'a': [6, 7, 8], 'unk': [0, 1, 2], 'what': [3, 4, 5]}
