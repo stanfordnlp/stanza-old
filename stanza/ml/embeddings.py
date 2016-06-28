@@ -53,7 +53,7 @@ class Embeddings(object):
         """
         return self.array.dot(vec)
 
-    def score_map(self, scores):
+    def score_map(self, ids, scores):
         """Get the inner product of a vector with every embedding.
 
             Args:
@@ -62,9 +62,13 @@ class Embeddings(object):
         Returns (Dict[str, float]): a map from each word to its score, in descending order.
         """
         score_map = {}
+
+        assert len(ids.shape) == 1
         assert len(scores.shape) == 1
-        for i in range(len(scores)):
-            score_map[self.vocab.index2word(i)] = scores[i]
+        assert ids.shape = scores.shape
+
+        for i in range(len(idxs)):
+            score_map[self.vocab.index2word(ids[i])] = scores[i]
         return score_map
 
     def k_nearest_neighbors(self, vec, k):
@@ -92,8 +96,8 @@ class Embeddings(object):
         Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs
         """
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
-        scores = np.subtract(1,distances)
-        score_map = self.score_map(np.squeeze(scores))
+        scores = 1-distances
+        score_map = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
         nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
 
         return nbr_score_pairs
