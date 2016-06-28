@@ -3,6 +3,7 @@ import pytest
 from stanza.ml.embeddings import Embeddings
 from stanza.text import Vocab
 import numpy as np
+#import scipy
 
 
 @pytest.fixture
@@ -37,7 +38,7 @@ def test_get_item(embeddings):
 
 def test_inner_products(embeddings):
     query = np.array([3, 2, 1])
-    scores = embeddings.inner_products(query)
+    scores = embeddings.score_map(embeddings.inner_products(query))
     correct = {
         'a': 18 + 14 + 8,
         'show': 27 + 20 + 11,
@@ -49,6 +50,14 @@ def test_inner_products(embeddings):
     knn = embeddings.k_nearest_neighbors(query, 3)
     assert knn == [('show', 58), ('a', 40), ('what', 22)]
 
+def test_approx_neighbors():
+    # Code for calculating the correct cosine similarities.
+    # for i in range(len(array)):
+    #    print 1-scipy.spatial.distance.cosine(array[i,:], query)
+
+    query = np.array([3, 2, 1])
+    knn = emb.approx_neighbors(query, 3)
+    assert knn == [('unk', 0.89199106528525429), ('what', 0.87579576196887721), ('a', 0.83152184062029977)]
 
 def test_subset(embeddings):
     sub = embeddings.subset(['a', 'what'])

@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import logging
 import numpy as np
 from stanza.text import Vocab
+from sklearn.neighbors import LSHForest
 
 
 class Embeddings(object):
@@ -21,8 +22,13 @@ class Embeddings(object):
         """
         assert len(array.shape) == 2
         assert array.shape[0] == len(vocab)  # entries line up
+
         self.array = array
         self.vocab = vocab
+
+        # Build LSHF Forest
+        self.lshf = LSHForest()
+        self.lshf.fit(self.array)
 
     def __getitem__(self, w):
         idx = self.vocab.word2index(w)
@@ -43,9 +49,18 @@ class Embeddings(object):
         Args:
             vector (np.array): the query vector
 
-        Returns (Dict[str, float]): a map from word to inner product value.
+        Returns (np.array): inner product of a vector with every embedding.
         """
-        scores = self.array.dot(vec)
+        return self.array.dot(vec)
+
+    def score_map(self, scores):
+        """Get the inner product of a vector with every embedding.
+
+            Args:
+                scores (np.array): the scores assigned to every embedding.
+
+        Returns (Dict[str, float]): a map from each word to its score, in descending order.
+        """
         score_map = {}
         assert len(scores.shape) == 1
         for i in range(len(scores)):
@@ -61,10 +76,28 @@ class Embeddings(object):
 
         Returns (List[Tuple[str, float]]): a list of (word, score) pairs
         """
-        # TODO(kelvin): need sub-linear implementation
-        score_map = self.inner_products(vec)
+
+         # TODO(kelvin): need sub-linear implementation
+        score_map = self.score_map(self.inner_products(vec))
         nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
         return nbr_score_pairs[:k]
+
+    def approx_neighbors(self, vec, k):
+        """Get the k nearest neighbors of a vector.
+
+        Args:
+            vec (np.array): query vector
+            k (int): number of top neighbors to return
+
+        Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs
+        """
+        distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
+        scores = np.subtract(1,distances)
+        score_map = self.score_map(np.squeeze(scores))
+        nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
+
+        return nbr_score_pairs
+
 
     def to_dict(self):
         """Convert to dictionary.
