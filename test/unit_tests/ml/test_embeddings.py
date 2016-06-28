@@ -57,7 +57,7 @@ def test_approx_neighbors():
 
     query = np.array([3, 2, 1])
     knn = emb.approx_neighbors(query, 3)
-    assert knn == [('unk', 0.89199106528525429), ('what', 0.87579576196887721), ('a', 0.83152184062029977)]
+    assert knn == [('show', 0.89199106528525429), ('a', 0.87579576196887721), ('what', 0.83152184062029977)]
 
 def test_subset(embeddings):
     sub = embeddings.subset(['a', 'what'])
