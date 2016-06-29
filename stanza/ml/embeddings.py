@@ -47,31 +47,26 @@ class Embeddings(object):
     def inner_products(self, vec):
         """Get the inner product of a vector with every embedding.
 
-        Args:
-            vector (np.array): the query vector
+        :param (np.array) vector: the query vector
 
-        Returns (List[Tuple[str, float]]): a map of embeddings to inner products
+        :return (list[tuple[str, float]]): a map of embeddings to inner products
         """
         products = self.array.dot(vec)
-
         return self.score_map(np.arange(len(products)), products)
 
     def score_map(self, ids, scores):
         """Return a map from each word to its score.
 
-        Args:
-            ids (np.array): a vector of word ids
-            scores (np.array): a vector of scores
+        :param (np.array) ids: a vector of word ids
+        :param (np.array) scores: a vector of scores
 
-        Returns:
-            dict[str, float]: a map from each word to its score
+        :return (dict[str, float]): a map from each word to its score
         """
-        score_map = {}
-
         # should be 1-D vectors
         assert len(ids.shape) == 1
         assert ids.shape == scores.shape
 
+        score_map = {}
         for i in range(len(ids)):
             score_map[self.vocab.index2word(ids[i])] = scores[i]
         return score_map
@@ -79,11 +74,10 @@ class Embeddings(object):
     def k_nearest(self, vec, k):
         """Get the k nearest neighbors of a vector (in terms of highest inner products).
 
-        Args:
-            vec (np.array): query vector
-            k (int): number of top neighbors to return
+        :param (np.array) vec: query vector
+        :param (int) k: number of top neighbors to return
 
-        Returns (List[Tuple[str, float]]): a list of (word, score) pairs, in descending order
+        :return (list[tuple[str, float]]): a list of (word, score) pairs, in descending order
         """
         nbr_score_pairs = self.inner_products(vec)
         return sorted(nbr_score_pairs.items(), key=lambda x: x[1], reverse=True)[:k]
@@ -91,11 +85,10 @@ class Embeddings(object):
     def k_nearest_approx(self, vec, k):
         """Get the k nearest neighbors of a vector (in terms of cosine similarity).
 
-        Args:
-            vec (np.array): query vector
-            k (int): number of top neighbors to return
+        :param (np.array) vec: query vector
+        :param (int) k: number of top neighbors to return
 
-        Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs, in descending order
+        :return (list[tuple[str, float]]): a list of (word, cosine similarity) pairs, in descending order
         """
         # TODO(kelvin): make this inner product score, to be consistent with k_nearest
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
