@@ -38,7 +38,7 @@ def test_get_item(embeddings):
 
 def test_inner_products(embeddings):
     query = np.array([3, 2, 1])
-    scores = embeddings.score_map(embeddings.inner_products(query))
+    scores = embeddings.score_map(np.arange(4), embeddings.inner_products(query))
     correct = {
         'a': 18 + 14 + 8,
         'show': 27 + 20 + 11,
@@ -47,16 +47,16 @@ def test_inner_products(embeddings):
     }
     assert scores == correct
 
-    knn = embeddings.k_nearest_neighbors(query, 3)
+    knn = embeddings.k_nearest(query, 3)
     assert knn == [('show', 58), ('a', 40), ('what', 22)]
 
-def test_approx_neighbors():
+def test_k_nearest_approx(embeddings):
     # Code for calculating the correct cosine similarities.
     # for i in range(len(array)):
     #    print 1-scipy.spatial.distance.cosine(array[i,:], query)
 
     query = np.array([3, 2, 1])
-    knn = emb.approx_neighbors(query, 3)
+    knn = embeddings.k_nearest_approx(query, 3)
     assert knn == [('show', 0.89199106528525429), ('a', 0.87579576196887721), ('what', 0.83152184062029977)]
 
 def test_subset(embeddings):

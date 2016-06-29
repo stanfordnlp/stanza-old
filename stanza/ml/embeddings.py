@@ -65,13 +65,13 @@ class Embeddings(object):
 
         assert len(ids.shape) == 1
         assert len(scores.shape) == 1
-        assert ids.shape = scores.shape
+        assert ids.shape == scores.shape
 
-        for i in range(len(idxs)):
+        for i in range(len(ids)):
             score_map[self.vocab.index2word(ids[i])] = scores[i]
         return score_map
 
-    def k_nearest_neighbors(self, vec, k):
+    def k_nearest(self, vec, k):
         """Get the k nearest neighbors of a vector.
 
         Args:
@@ -82,11 +82,12 @@ class Embeddings(object):
         """
 
          # TODO(kelvin): need sub-linear implementation
-        score_map = self.score_map(self.inner_products(vec))
+        products = self.inner_products(vec)
+        score_map = self.score_map(np.arange(len(products)), products)
         nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
         return nbr_score_pairs[:k]
 
-    def approx_neighbors(self, vec, k):
+    def k_nearest_approx(self, vec, k):
         """Get the k nearest neighbors of a vector.
 
         Args:
@@ -96,7 +97,7 @@ class Embeddings(object):
         Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs
         """
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
-        scores = 1-distances
+        scores = np.subtract(1,distances)
         score_map = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
         nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
 
