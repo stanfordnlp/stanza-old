@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 __author__ = 'kelvinguu'
 
 from contextlib import contextmanager
@@ -50,9 +52,12 @@ class Embeddings(object):
         Args:
             vector (np.array): the query vector
 
-        Returns (np.array): inner product of a vector with every embedding.
+        Returns (OrderedDict[str, float]): a map of embeddings to inner products, in descending order.
         """
-        return self.array.dot(vec)
+
+        products = self.array.dot(vec)
+
+        return self.score_map(np.arange(len(products)), products)
 
     def score_map(self, ids, scores):
         """Map each word to its score, and sort them in descending order.
@@ -63,6 +68,7 @@ class Embeddings(object):
         Returns (List[Tuple[str, float]]): a map from each word to its score, in descending order.
         """
         score_map = {}
+        sorted_map = OrderedDict()
 
         assert len(ids.shape) == 1
         assert len(scores.shape) == 1
@@ -70,7 +76,11 @@ class Embeddings(object):
 
         for i in range(len(ids)):
             score_map[self.vocab.index2word(ids[i])] = scores[i]
-        return sorted(score_map.items(), key=lambda x: x[1], reverse=True)
+
+        for id, score in sorted(score_map.items(), key=lambda x: x[1], reverse=True):
+            sorted_map[id] = score
+
+        return sorted_map
 
     def k_nearest(self, vec, k):
         """Get the k nearest neighbors of a vector by computing its inner product with every embedding.
@@ -83,8 +93,7 @@ class Embeddings(object):
         """
 
         # TODO(kelvin): need sub-linear implementation
-        products = self.inner_products(vec)
-        nbr_score_pairs = self.score_map(np.arange(len(products)), products)
+        nbr_score_pairs = self.inner_products(vec)
         return nbr_score_pairs[:k]
 
     def k_nearest_approx(self, vec, k):
@@ -99,6 +108,7 @@ class Embeddings(object):
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
         scores = np.subtract(1, distances)
         nbr_score_pairs = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
+
         return nbr_score_pairs
 
     def to_dict(self):
