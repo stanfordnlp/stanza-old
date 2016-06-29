@@ -294,7 +294,6 @@ class FrozenVocab(BaseVocab):
 
 
 class EmbeddedVocab(Vocab):
-
     def get_embeddings(self):
         """
         :return: the embedding matrix for this vocabulary object.
@@ -316,7 +315,6 @@ class EmbeddedVocab(Vocab):
 
 
 class SennaVocab(EmbeddedVocab):
-
     """
     Vocab object with initialization from Senna by Collobert et al.
 
@@ -369,7 +367,6 @@ class SennaVocab(EmbeddedVocab):
 
 
 class GloveVocab(EmbeddedVocab):
-
     """
     Vocab object with initialization from GloVe by Pennington et al.
 
@@ -415,7 +412,8 @@ class GloveVocab(EmbeddedVocab):
 
         with zipfile.ZipFile(open(zip_file)) as zf:
             # should be only 1 txt file
-            names = [info.filename for info in zf.infolist() if info.filename.endswith('.txt') and n_dim in info.filename]
+            names = [info.filename for info in zf.infolist() if
+                     info.filename.endswith('.txt') and n_dim in info.filename]
             if not names:
                 s = 'no .txt files found in zip file that matches {}-dim!'.format(n_dim)
                 s += '\n available files: {}'.format(names)

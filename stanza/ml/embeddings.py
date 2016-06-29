@@ -14,6 +14,7 @@ class Embeddings(object):
     Vectors are saved/loaded from disk using numpy.load, which is roughly 3-4 times faster
     than reading a text file.
     """
+
     def __init__(self, array, vocab):
         """Create embeddings object.
 
@@ -54,12 +55,12 @@ class Embeddings(object):
         return self.array.dot(vec)
 
     def score_map(self, ids, scores):
-        """Get the inner product of a vector with every embedding.
+        """Map each word to its score, and sort them in descending order.
 
             Args:
                 scores (np.array): the scores assigned to every embedding.
 
-        Returns (Dict[str, float]): a map from each word to its score, in descending order.
+        Returns (List[Tuple[str, float]]): a map from each word to its score, in descending order.
         """
         score_map = {}
 
@@ -69,10 +70,10 @@ class Embeddings(object):
 
         for i in range(len(ids)):
             score_map[self.vocab.index2word(ids[i])] = scores[i]
-        return score_map
+        return sorted(score_map.items(), key=lambda x: x[1], reverse=True)
 
     def k_nearest(self, vec, k):
-        """Get the k nearest neighbors of a vector.
+        """Get the k nearest neighbors of a vector by computing its inner product with every embedding.
 
         Args:
             vec (np.array): query vector
@@ -81,10 +82,9 @@ class Embeddings(object):
         Returns (List[Tuple[str, float]]): a list of (word, score) pairs
         """
 
-         # TODO(kelvin): need sub-linear implementation
+        # TODO(kelvin): need sub-linear implementation
         products = self.inner_products(vec)
-        score_map = self.score_map(np.arange(len(products)), products)
-        nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
+        nbr_score_pairs = self.score_map(np.arange(len(products)), products)
         return nbr_score_pairs[:k]
 
     def k_nearest_approx(self, vec, k):
@@ -97,12 +97,9 @@ class Embeddings(object):
         Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs
         """
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
-        scores = np.subtract(1,distances)
-        score_map = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
-        nbr_score_pairs = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
-
+        scores = np.subtract(1, distances)
+        nbr_score_pairs = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
         return nbr_score_pairs
-
 
     def to_dict(self):
         """Convert to dictionary.
