@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 __author__ = 'kelvinguu'
 
 from contextlib import contextmanager
@@ -52,9 +50,8 @@ class Embeddings(object):
         Args:
             vector (np.array): the query vector
 
-        Returns (OrderedDict[str, float]): a map of embeddings to inner products, in descending order.
+        Returns (List[Tuple[str, float]]): a map of embeddings to inner products
         """
-
         products = self.array.dot(vec)
 
         return self.score_map(np.arange(len(products)), products)
@@ -63,12 +60,11 @@ class Embeddings(object):
         """Map each word to its score, and sort them in descending order.
 
             Args:
-                scores (np.array): the scores assigned to every embedding.
+                scores (np.array): the scores assigned to every embedding
 
-        Returns (List[Tuple[str, float]]): a map from each word to its score, in descending order.
+        Returns (List[Tuple[str, float]]): a map from each word to its score
         """
         score_map = {}
-        sorted_map = OrderedDict()
 
         assert len(ids.shape) == 1
         assert len(scores.shape) == 1
@@ -76,11 +72,7 @@ class Embeddings(object):
 
         for i in range(len(ids)):
             score_map[self.vocab.index2word(ids[i])] = scores[i]
-
-        for id, score in sorted(score_map.items(), key=lambda x: x[1], reverse=True):
-            sorted_map[id] = score
-
-        return sorted_map
+        return score_map
 
     def k_nearest(self, vec, k):
         """Get the k nearest neighbors of a vector by computing its inner product with every embedding.
@@ -89,12 +81,11 @@ class Embeddings(object):
             vec (np.array): query vector
             k (int): number of top neighbors to return
 
-        Returns (List[Tuple[str, float]]): a list of (word, score) pairs
+        Returns (List[Tuple[str, float]]): a list of (word, score) pairs, in descending order
         """
-
         # TODO(kelvin): need sub-linear implementation
         nbr_score_pairs = self.inner_products(vec)
-        return nbr_score_pairs[:k]
+        return sorted(nbr_score_pairs.items(), key=lambda x: x[1], reverse=True)[:k]
 
     def k_nearest_approx(self, vec, k):
         """Get the k nearest neighbors of a vector.
@@ -103,13 +94,13 @@ class Embeddings(object):
             vec (np.array): query vector
             k (int): number of top neighbors to return
 
-        Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs
+        Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs, in descending order
         """
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
         scores = np.subtract(1, distances)
         nbr_score_pairs = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
 
-        return nbr_score_pairs
+        return sorted(nbr_score_pairs.items(), key=lambda x: x[1], reverse=True)
 
     def to_dict(self):
         """Convert to dictionary.
