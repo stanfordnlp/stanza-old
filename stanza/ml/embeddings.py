@@ -57,17 +57,19 @@ class Embeddings(object):
         return self.score_map(np.arange(len(products)), products)
 
     def score_map(self, ids, scores):
-        """Map each word to its score, and sort them in descending order.
+        """Return a map from each word to its score.
 
-            Args:
-                scores (np.array): the scores assigned to every embedding
+        Args:
+            ids (np.array): a vector of word ids
+            scores (np.array): a vector of scores
 
-        Returns (List[Tuple[str, float]]): a map from each word to its score
+        Returns:
+            dict[str, float]: a map from each word to its score
         """
         score_map = {}
 
+        # should be 1-D vectors
         assert len(ids.shape) == 1
-        assert len(scores.shape) == 1
         assert ids.shape == scores.shape
 
         for i in range(len(ids)):
@@ -75,7 +77,7 @@ class Embeddings(object):
         return score_map
 
     def k_nearest(self, vec, k):
-        """Get the k nearest neighbors of a vector by computing its inner product with every embedding.
+        """Get the k nearest neighbors of a vector (in terms of highest inner products).
 
         Args:
             vec (np.array): query vector
@@ -83,12 +85,11 @@ class Embeddings(object):
 
         Returns (List[Tuple[str, float]]): a list of (word, score) pairs, in descending order
         """
-        # TODO(kelvin): need sub-linear implementation
         nbr_score_pairs = self.inner_products(vec)
         return sorted(nbr_score_pairs.items(), key=lambda x: x[1], reverse=True)[:k]
 
     def k_nearest_approx(self, vec, k):
-        """Get the k nearest neighbors of a vector.
+        """Get the k nearest neighbors of a vector (in terms of cosine similarity).
 
         Args:
             vec (np.array): query vector
@@ -96,6 +97,7 @@ class Embeddings(object):
 
         Returns (List[Tuple[str, float]]): a list of (word, cosine similarity) pairs, in descending order
         """
+        # TODO(kelvin): make this inner product score, to be consistent with k_nearest
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
         scores = np.subtract(1, distances)
         nbr_score_pairs = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
