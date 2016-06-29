@@ -40,7 +40,8 @@ def test_get_item(embeddings):
 
 def test_inner_products(embeddings):
     query = np.array([3, 2, 1])
-    scores = embeddings.score_map(np.arange(4), embeddings.inner_products(query))
+
+    scores = embeddings.inner_products(query)
     correct = {
         'a': 18 + 14 + 8,
         'show': 27 + 20 + 11,
