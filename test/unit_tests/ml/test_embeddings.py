@@ -5,9 +5,6 @@ from stanza.text import Vocab
 import numpy as np
 
 
-# import scipy
-
-
 @pytest.fixture
 def embeddings():
     v = Vocab('unk')
@@ -40,7 +37,6 @@ def test_get_item(embeddings):
 
 def test_inner_products(embeddings):
     query = np.array([3, 2, 1])
-
     scores = embeddings.inner_products(query)
     correct = {
         'a': 18 + 14 + 8,
