@@ -4,7 +4,6 @@ from contextlib import contextmanager
 import logging
 import numpy as np
 from stanza.text import Vocab
-from sklearn.neighbors import LSHForest
 
 
 class Embeddings(object):
@@ -26,10 +25,6 @@ class Embeddings(object):
 
         self.array = array
         self.vocab = vocab
-
-        # Build LSHF Forest
-        self.lshf = LSHForest()
-        self.lshf.fit(self.array)
 
     def __getitem__(self, w):
         idx = self.vocab.word2index(w)
@@ -82,6 +77,13 @@ class Embeddings(object):
         nbr_score_pairs = self.inner_products(vec)
         return sorted(nbr_score_pairs.items(), key=lambda x: x[1], reverse=True)[:k]
 
+    def _init_lsh_forest(self):
+        """Construct an LSH forest for nearest neighbor search."""
+        import sklearn.neighbors
+        lshf = sklearn.neighbors.LSHForest()
+        lshf.fit(self.array)
+        return lshf
+
     def k_nearest_approx(self, vec, k):
         """Get the k nearest neighbors of a vector (in terms of cosine similarity).
 
@@ -90,6 +92,9 @@ class Embeddings(object):
 
         :return (list[tuple[str, float]]): a list of (word, cosine similarity) pairs, in descending order
         """
+        if not hasattr(self, 'lshf'):
+            self.lshf = self._init_lsh_forest()
+
         # TODO(kelvin): make this inner product score, to be consistent with k_nearest
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
         scores = np.subtract(1, distances)
