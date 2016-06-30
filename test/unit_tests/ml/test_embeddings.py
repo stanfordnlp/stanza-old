@@ -3,6 +3,7 @@ import pytest
 from stanza.ml.embeddings import Embeddings
 from stanza.text import Vocab
 import numpy as np
+from numpy.testing import assert_approx_equal
 
 
 @pytest.fixture
@@ -57,7 +58,11 @@ def test_k_nearest_approx(embeddings):
 
     query = np.array([3, 2, 1])
     knn = embeddings.k_nearest_approx(query, 3)
-    assert knn == [('show', 0.89199106528525429), ('a', 0.87579576196887721), ('what', 0.83152184062029977)]
+    correct = [('show', 0.89199106528525429), ('a', 0.87579576196887721), ('what', 0.83152184062029977)]
+    assert len(knn) == len(correct)
+    for (w1, s1), (w2, s2) in zip(knn, correct):
+        assert w1 == w2
+        assert_approx_equal(s1, s2)
 
 
 def test_subset(embeddings):
