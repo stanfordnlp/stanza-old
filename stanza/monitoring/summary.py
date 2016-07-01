@@ -1,5 +1,5 @@
 '''
->>> fs = patcher('stanza.research.summary', '/test'); open = fs.start()
+>>> fs = patcher('stanza.monitoring.summary', '/test'); open = fs.start()
 ... # ^ for doctest; ignore
 
 A nearly pure-Python module for logging output to a file in TensorBoard's
@@ -140,7 +140,7 @@ class SummaryWriter(object):
         :param str tag: Label for this value
         :param float val: Scalar to graph at this time step (y-axis)
         '''
-        summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(val))])
+        summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(np.float32(val)))])
         self._add_event(step, summary)
 
     def log_histogram(self, step, tag, val):
@@ -180,6 +180,7 @@ class SummaryWriter(object):
 
 
 _default_buckets = None
+
 
 def default_buckets():
     global _default_buckets
