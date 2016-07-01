@@ -23,9 +23,12 @@ def corpus_bleu(reference_groups, predictions):
         prediction_len += len(pred)
         reference_len += closest_length(refs, pred)
 
-    brevity_penalty = min(1.0, exp(1.0 - reference_len * 1.0 / prediction_len))
+    if prediction_len <= 0:
+        brevity_penalty = 0.0 if reference_len > 0 else 1.0
+    else:
+        brevity_penalty = min(1.0, exp(1.0 - reference_len * 1.0 / prediction_len))
     fracs = [(num, denom) for num, denom in zip(nums, denoms) if denom != 0]
-    if 0 in [num for num, denom in fracs]:
+    if not fracs or 0 in [num for num, denom in fracs]:
         return 0.0
     else:
         weight = 1.0 / len(fracs)
