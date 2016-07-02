@@ -152,6 +152,48 @@ def perplexity(eval_data, predictions, scores, learner='ignored'):
     return np.exp(-np.array(scores)).tolist()
 
 
+def token_perplexity_macro(eval_data, predictions, scores, learner='ignored'):
+    '''
+    Return the per-token perplexity `exp(-score / num_tokens)` computed from each
+    score in `scores.`
+
+    The correct macro-average is given by the geometric mean.
+
+    >>> refs = [Instance(None, '1'),
+    ...         Instance(None, '1'),
+    ...         Instance(None, '1 2')]
+    >>> scores = [np.log(1.0), np.log(0.25), np.log(0.0625)]
+    >>> perplexities = token_perplexity_macro(refs, None, scores)
+    >>> [round(p) for p in perplexities]
+    ... # sequence perplexities: [1, 4, 16]
+    ... # per-token perplexities: [1, 4, 8]
+    [1.0, 4.0, 8.0]
+    '''
+    lens = np.array([len(inst.output.split()) for inst in eval_data])
+    return np.exp(-np.array(scores) - np.log(lens)).tolist()
+
+
+def token_perplexity_micro(eval_data, predictions, scores, learner='ignored'):
+    '''
+    Return the micro-averaged per-token perplexity `exp(-score / num_tokens)`
+    computed over the entire corpus, as a length-1 list of floats.
+    The log scores in `scores` should be base e (`exp`, `log`).
+
+    >>> refs = [Instance(None, '1'),
+    ...         Instance(None, '1'),
+    ...         Instance(None, '1 2')]
+    >>> scores = [np.log(1.0), np.log(0.25), np.log(0.0625)]
+    >>> perplexity = token_perplexity_micro(refs, None, scores)
+    >>> [round(p) for p in perplexity]
+    ... # sequence perplexities: [1, 4, 16]
+    ... # per-token perplexities: [1, 4, 8]
+    ... # micro-average: gmean([1, 4, 8, 8])
+    [4.0]
+    '''
+    lens = np.array([len(inst.output.split()) for inst in eval_data])
+    return [np.exp(np.average(-np.array(scores) - np.log(lens), weights=lens))]
+
+
 def aic(eval_data, predictions, scores, learner):
     '''
     Return Akaike information criterion (AIC) scores for the given
