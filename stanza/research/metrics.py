@@ -162,7 +162,7 @@ def token_perplexity_macro(eval_data, predictions, scores, learner='ignored'):
     >>> refs = [Instance(None, ''),
     ...         Instance(None, ''),
     ...         Instance(None, '2')]
-    >>> scores = [np.log(1.0), np.log(0.25), np.log(0.0625)]
+    >>> scores = [np.log(1.0), np.log(0.25), np.log(1 / 64.)]
     >>> perplexities = token_perplexity_macro(refs, None, scores)
     >>> [round(p) for p in perplexities]
     ... # sequence perplexities: [1, 4, 16]
