@@ -159,9 +159,9 @@ def token_perplexity_macro(eval_data, predictions, scores, learner='ignored'):
 
     The correct macro-average is given by the geometric mean.
 
-    >>> refs = [Instance(None, '1'),
-    ...         Instance(None, '1'),
-    ...         Instance(None, '1 2')]
+    >>> refs = [Instance(None, ''),
+    ...         Instance(None, ''),
+    ...         Instance(None, '2')]
     >>> scores = [np.log(1.0), np.log(0.25), np.log(0.0625)]
     >>> perplexities = token_perplexity_macro(refs, None, scores)
     >>> [round(p) for p in perplexities]
@@ -169,8 +169,8 @@ def token_perplexity_macro(eval_data, predictions, scores, learner='ignored'):
     ... # per-token perplexities: [1, 4, 8]
     [1.0, 4.0, 8.0]
     '''
-    lens = np.array([len(inst.output.split()) for inst in eval_data])
-    return np.exp(-np.array(scores) - np.log(lens)).tolist()
+    lens = np.array([len(inst.output.split()) + 1 for inst in eval_data])
+    return np.exp(-np.array(scores) / lens).tolist()
 
 
 def token_perplexity_micro(eval_data, predictions, scores, learner='ignored'):
@@ -179,19 +179,19 @@ def token_perplexity_micro(eval_data, predictions, scores, learner='ignored'):
     computed over the entire corpus, as a length-1 list of floats.
     The log scores in `scores` should be base e (`exp`, `log`).
 
-    >>> refs = [Instance(None, '1'),
-    ...         Instance(None, '1'),
-    ...         Instance(None, '1 2')]
-    >>> scores = [np.log(1.0), np.log(0.25), np.log(0.0625)]
+    >>> refs = [Instance(None, ''),
+    ...         Instance(None, ''),
+    ...         Instance(None, '2')]
+    >>> scores = [np.log(1.0), np.log(0.25), np.log(1 / 64.)]
     >>> perplexity = token_perplexity_micro(refs, None, scores)
     >>> [round(p) for p in perplexity]
-    ... # sequence perplexities: [1, 4, 16]
+    ... # sequence perplexities: [1, 4, 64]
     ... # per-token perplexities: [1, 4, 8]
     ... # micro-average: gmean([1, 4, 8, 8])
     [4.0]
     '''
-    lens = np.array([len(inst.output.split()) for inst in eval_data])
-    return [np.exp(np.average(-np.array(scores) - np.log(lens), weights=lens))]
+    lens = np.array([len(inst.output.split()) + 1 for inst in eval_data])
+    return [np.exp(np.average(-np.array(scores) / lens, weights=lens))]
 
 
 def aic(eval_data, predictions, scores, learner):
