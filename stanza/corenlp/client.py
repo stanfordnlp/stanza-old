@@ -17,27 +17,65 @@ class Client(object):
     """
     Constructor.
 
-    :param server: url of the CoreNLP server.
+    :param (str) server: url of the CoreNLP server.
     """
     self.server = server
     assert requests.get(self.server).ok, 'Stanford CoreNLP server was not found at location {}'.format(self.server)
 
-  def annotate(self, text, properties=None):
+  def _request(self, text, properties):
+    return requests.post(self.server, params={'properties': str(properties)}, data=text)
+
+  def annotate_dict(self, text, annotators):
+    """Return a dict from the CoreNLP server, containing annotations of the text.
+
+    :param (str) text: Text to annotate.
+    :param (list[str]) annotators: a list of annotator names
+
+    :return (dict): a dict of annotations
     """
-    Annotates text using CoreNLP. The properties field are described in
+    properties = {
+      'annotators': ','.join(annotators),
+      'outputFormat': 'json',
+    }
+    return self._request(text, properties).json(strict=False)
 
-    http://stanfordnlp.github.io/CoreNLP/corenlp-server.html.
+  def annotate_proto(self, text, annotators):
+    """Return a Document protocol buffer from the CoreNLP server, containing annotations of the text.
 
-    The properties for each of the annotators can be found at
+    :param (str) text: text to be annotated
+    :param (list[str]) annotators: a list of annotator names
 
-    http://stanfordnlp.github.io/CoreNLP/annotators.html
-
-    :param text: Text to annotate.
-    :param properties: A dictionary of properties for CoreNLP.
+    :return (CoreNLP_pb2.Document): a Document protocol buffer
     """
-    properties = properties or {}
-    r = requests.get(self.server, params={'properties': str(properties)}, data=text)
-    return r.json(strict=False)
+    properties = {
+      'annotators': ','.join(annotators),
+      'outputFormat': 'serialized',
+      'serializer': 'edu.stanford.nlp.pipeline.ProtobufAnnotationSerializer'
+    }
+    r = self._request(text, properties)
+    buffer = r.content  # bytes
+
+    size, pos = _DecodeVarint(buffer, 0)
+    buffer = buffer[pos:(pos + size)]
+    doc = CoreNLP_pb2.Document()
+    doc.ParseFromString(buffer)
+    return doc
+
+  def annotate(self, text, annotators):
+    """Return an AnnotatedDocument from the CoreNLP server.
+
+    :param (str) text: text to be annotated
+    :param (list[str]) annotators: a list of annotator names
+
+    See a list of valid annotator names here:
+      http://stanfordnlp.github.io/CoreNLP/annotators.html
+
+    :return (AnnotatedDocument): an annotated document
+    """
+    # TODO(kelvin): include raw text attribute for each sentence
+    doc_pb = self.annotate_proto(text, annotators)
+    return AnnotatedDocument(doc_pb)
+
 
 class Document(Sequence):
   """A sequence of Sentences."""
