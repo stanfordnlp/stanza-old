@@ -37,3 +37,82 @@ class Client(object):
     properties = properties or {}
     r = requests.get(self.server, params={'properties': str(properties)}, data=text)
     return r.json(strict=False)
+
+class Document(Sequence):
+  """A sequence of Sentences."""
+  pass
+
+
+class Sentence(Sequence):
+  """A sequence of strings."""
+  pass
+
+
+class AnnotatedDocument(Document):
+  def __init__(self, doc_pb):
+    self.pb = doc_pb
+
+  def __getitem__(self, i):
+    return AnnotatedSentence(self.pb.sentence[i])
+
+  def __len__(self):
+    return len(self.pb.sentence)
+
+  @property
+  def coref(self):
+      # TODO
+      raise NotImplementedError
+
+  def __str__(self):
+    return self.pb.text
+
+
+# TODO: finish specifying the Simple interface for AnnotatedSentence
+# http://stanfordnlp.github.io/CoreNLP/simple.html
+# In particular, all the methods that take arguments.
+
+
+class AnnotatedSentence(Sentence):
+  def __init__(self, sentence_pb):
+    self.pb = sentence_pb
+
+  def __getitem__(self, i):
+    return self.pb.token[i].word
+
+  def __len__(self):
+    return len(self.pb.token)
+
+  def __str__(self):
+    return self.text
+
+  @property
+  def text(self):
+    return self.pb.text
+
+  @property
+  def pos_tags(self):
+    raise NotImplementedError
+
+  @property
+  def lemmas(self):
+    raise NotImplementedError
+
+  @property
+  def ner_tags(self):
+    raise NotImplementedError
+
+  @property
+  def parse(self):
+    raise NotImplementedError
+
+  @property
+  def natlog_polarities(self):
+    raise NotImplementedError
+
+  @property
+  def openie(self):
+    raise NotImplementedError
+
+  @property
+  def openie_triples(self):
+    raise NotImplementedError
