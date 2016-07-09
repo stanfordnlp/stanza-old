@@ -1,10 +1,11 @@
+from abc import ABCMeta, abstractmethod
+from collections import Sequence
+
 import requests
+import CoreNLP_pb2
+from google.protobuf.internal.decoder import _DecodeVarint
 
-__author__ = 'vzhong'
-
-# Original work by Smitha Milli:
-# https://github.com/smilli/py-corenlp
-
+__author__ = 'kelvinguu, vzhong'
 
 
 class Client(object):
