@@ -1,4 +1,3 @@
-from abc import ABCMeta, abstractmethod
 from collections import Sequence
 
 import requests
