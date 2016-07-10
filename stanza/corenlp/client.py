@@ -1,3 +1,4 @@
+from abc import abstractproperty
 from collections import Sequence
 
 import requests
@@ -91,6 +92,12 @@ class Sentence(Sequence):
   pass
 
 
+class Token(object):
+  @abstractproperty
+  def word(self):
+    pass
+
+
 class AnnotatedDocument(Document):
   def __init__(self, doc_pb):
     self.pb = doc_pb
@@ -129,6 +136,10 @@ class AnnotatedSentence(Sentence):
     return self.text
 
   @property
+  def tokens(self):
+    return [AnnotatedToken(tok) for tok in self.pb.token]
+
+  @property
   def text(self):
     return self.pb.text
 
@@ -159,6 +170,27 @@ class AnnotatedSentence(Sentence):
   @property
   def openie_triples(self):
     raise NotImplementedError
+
+
+class AnnotatedToken(Token):
+  def __init__(self, token_pb):
+    self.pb = token_pb
+
+  @property
+  def word(self):
+    return self.pb.word
+
+  @property
+  def ner(self):
+    return self.pb.ner
+
+  @property
+  def normalized_ner(self):
+    return self.pb.normalizedNER
+
+  @property
+  def wikipedia_entity(self):
+    return self.pb.wikipediaEntity
 
 
 # TODO(kelvin): sentence and doc classes that lazily perform annotations
