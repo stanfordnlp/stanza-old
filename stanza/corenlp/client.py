@@ -22,7 +22,12 @@ class Client(object):
     assert requests.get(self.server).ok, 'Stanford CoreNLP server was not found at location {}'.format(self.server)
 
   def _request(self, text, properties):
-    return requests.post(self.server, params={'properties': str(properties)}, data=text)
+    try:
+      r = requests.post(self.server, params={'properties': str(properties)}, data=text)
+      r.raise_for_status()
+      return r
+    except requests.HTTPError:
+      raise RuntimeError(r.text)
 
   def annotate_dict(self, text, annotators):
     """Return a dict from the CoreNLP server, containing annotations of the text.
