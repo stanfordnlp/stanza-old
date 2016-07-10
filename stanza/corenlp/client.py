@@ -159,3 +159,12 @@ class AnnotatedSentence(Sentence):
   @property
   def openie_triples(self):
     raise NotImplementedError
+
+
+# TODO(kelvin): sentence and doc classes that lazily perform annotations
+class LazyDocument(Sentence):
+  pass
+
+
+class LazySentence(Sentence):
+  pass
