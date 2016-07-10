@@ -126,6 +126,7 @@ class AnnotatedDocument(Document):
 class AnnotatedSentence(Sentence):
   def __init__(self, sentence_pb):
     self.pb = sentence_pb
+    self._tokens = [AnnotatedToken(tok) for tok in self.pb.token]
 
   def __getitem__(self, i):
     return self.pb.token[i].word
@@ -138,7 +139,7 @@ class AnnotatedSentence(Sentence):
 
   @property
   def tokens(self):
-    return [AnnotatedToken(tok) for tok in self.pb.token]
+    return self._tokens
 
   @property
   def text(self):
