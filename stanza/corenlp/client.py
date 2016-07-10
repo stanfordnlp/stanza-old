@@ -111,8 +111,8 @@ class AnnotatedDocument(Document):
 
   @property
   def coref(self):
-      # TODO
-      raise NotImplementedError
+    # TODO
+    raise NotImplementedError
 
   def __str__(self):
     return self.pb.text
