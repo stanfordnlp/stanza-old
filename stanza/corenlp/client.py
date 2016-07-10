@@ -101,12 +101,13 @@ class Token(object):
 class AnnotatedDocument(Document):
   def __init__(self, doc_pb):
     self.pb = doc_pb
+    self._sentences = [AnnotatedSentence(sent) for sent in self.pb.sentence]
 
   def __getitem__(self, i):
-    return AnnotatedSentence(self.pb.sentence[i])
+    return self._sentences[i]
 
   def __len__(self):
-    return len(self.pb.sentence)
+    return len(self._sentences)
 
   @property
   def coref(self):
