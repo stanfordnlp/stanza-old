@@ -1,6 +1,6 @@
 import pytest
 
-from stanza.corenlp.client import AnnotatedDocument, AnnotatedToken, AnnotatedSentence
+from stanza.nlp.corenlp import AnnotatedDocument, AnnotatedToken, AnnotatedSentence
 
 
 @pytest.fixture
