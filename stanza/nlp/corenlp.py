@@ -1,11 +1,10 @@
-from abc import abstractproperty
-from collections import Sequence
-
 import requests
-import CoreNLP_pb2
 from google.protobuf.internal.decoder import _DecodeVarint
 
-__author__ = 'kelvinguu, vzhong'
+import CoreNLP_pb2
+from stanza.nlp.data import Document, Sentence, Token
+
+__author__ = 'kelvinguu, vzhong, wmonroe4'
 
 
 class CoreNLPClient(object):
@@ -80,22 +79,6 @@ class CoreNLPClient(object):
     # TODO(kelvin): include raw text attribute for each sentence
     doc_pb = self.annotate_proto(text, annotators)
     return AnnotatedDocument(doc_pb)
-
-
-class Document(Sequence):
-  """A sequence of Sentence objects."""
-  pass
-
-
-class Sentence(Sequence):
-  """A sequence of Token objects."""
-  pass
-
-
-class Token(object):
-  @abstractproperty
-  def word(self):
-    pass
 
 
 class AnnotatedDocument(Document):
