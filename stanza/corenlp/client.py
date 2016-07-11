@@ -156,9 +156,12 @@ class AnnotatedSentence(Sentence):
     sent.token.extend(tokens)
     return sent
 
+  def word(self, i):
+    return self._tokens[i].word
+
   @property
-  def tokens(self):
-    return self._tokens
+  def words(self):
+    return [tok.word for tok in self._tokens]
 
   @property
   def text(self):
