@@ -164,21 +164,30 @@ class AnnotatedSentence(Sentence):
   def text(self):
     return self.pb.text
 
+  def pos_tag(self, i):
+    return self._tokens[i].pos
+
   @property
   def pos_tags(self):
-    raise NotImplementedError
+    return [tok.pos for tok in self._tokens]
+
+  def lemma(self, i):
+    return self._tokens[i].lemma
 
   @property
   def lemmas(self):
-    raise NotImplementedError
+    return [tok.lemma for tok in self._tokens]
+
+  def ner_tag(self, i):
+    return self._tokens[i].ner
 
   @property
   def ner_tags(self):
-    raise NotImplementedError
+    return [tok.ner for tok in self._tokens]
 
   @property
   def parse(self):
-    raise NotImplementedError
+    return self.pb.parseTree
 
   @property
   def natlog_polarities(self):
@@ -201,7 +210,9 @@ class AnnotatedToken(Token):
   def dict_to_pb(json_dict):
     tok = CoreNLP_pb2.Token()
     tok.word = json_dict['word']
+    tok.pos = json_dict['pos']
     tok.ner = json_dict['ner']
+    tok.lemma = json_dict['lemma']
     tok.wikipediaEntity = json_dict['entitylink']
     # TODO(kelvin): set other properties of token
     return tok
@@ -211,8 +222,16 @@ class AnnotatedToken(Token):
     return self.pb.word
 
   @property
+  def pos(self):
+    return self.pb.pos
+
+  @property
   def ner(self):
     return self.pb.ner
+
+  @property
+  def lemma(self):
+    return self.pb.lemma
 
   @property
   def normalized_ner(self):
