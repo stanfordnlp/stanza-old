@@ -109,16 +109,27 @@ class AnnotatedDocument(Document):
   def __len__(self):
     return len(self._sentences)
 
+  @staticmethod
+  def from_dict(json_dict):
+    return AnnotatedDocument(AnnotatedDocument.dict_to_pb(json_dict))
+
+  @staticmethod
+  def dict_to_pb(json_dict):
+    sentences = [AnnotatedSentence.dict_to_pb(d) for d in json_dict['sentences']]
+    doc = CoreNLP_pb2.Document()
+    # TODO(kelvin): set doc.text and other available properties
+    doc.sentence.extend(sentences)
+    return doc
+
   @property
   def coref(self):
-    # TODO
     raise NotImplementedError
 
   def __str__(self):
     return self.pb.text
 
 
-# TODO: finish specifying the Simple interface for AnnotatedSentence
+# TODO(kelvin): finish specifying the Simple interface for AnnotatedSentence
 # http://stanfordnlp.github.io/CoreNLP/simple.html
 # In particular, all the methods that take arguments.
 
@@ -136,6 +147,14 @@ class AnnotatedSentence(Sentence):
 
   def __str__(self):
     return self.text
+
+  @staticmethod
+  def dict_to_pb(json_dict):
+    sent = CoreNLP_pb2.Sentence()
+    tokens = [AnnotatedToken.dict_to_pb(d) for d in json_dict['tokens']]
+    # TODO(kelvin): set other properties of sentence
+    sent.token.extend(tokens)
+    return sent
 
   @property
   def tokens(self):
@@ -177,6 +196,15 @@ class AnnotatedSentence(Sentence):
 class AnnotatedToken(Token):
   def __init__(self, token_pb):
     self.pb = token_pb
+
+  @staticmethod
+  def dict_to_pb(json_dict):
+    tok = CoreNLP_pb2.Token()
+    tok.word = json_dict['word']
+    tok.ner = json_dict['ner']
+    tok.wikipediaEntity = json_dict['entitylink']
+    # TODO(kelvin): set other properties of token
+    return tok
 
   @property
   def word(self):
