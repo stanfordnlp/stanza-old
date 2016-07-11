@@ -83,12 +83,12 @@ class Client(object):
 
 
 class Document(Sequence):
-  """A sequence of Sentences."""
+  """A sequence of Sentence objects."""
   pass
 
 
 class Sentence(Sequence):
-  """A sequence of strings."""
+  """A sequence of Token objects."""
   pass
 
 
@@ -140,10 +140,10 @@ class AnnotatedSentence(Sentence):
     self._tokens = [AnnotatedToken(tok) for tok in self.pb.token]
 
   def __getitem__(self, i):
-    return self.pb.token[i].word
+    return self._tokens[i]
 
   def __len__(self):
-    return len(self.pb.token)
+    return len(self._tokens)
 
   def __str__(self):
     return self.text
