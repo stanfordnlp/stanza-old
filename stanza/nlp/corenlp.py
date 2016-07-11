@@ -8,7 +8,7 @@ from google.protobuf.internal.decoder import _DecodeVarint
 __author__ = 'kelvinguu, vzhong'
 
 
-class Client(object):
+class CoreNLPClient(object):
   """
   A CoreNLP client to the Stanford CoreNLP server.
   """
