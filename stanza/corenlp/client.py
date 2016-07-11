@@ -190,7 +190,7 @@ class AnnotatedSentence(Sentence):
 
   @property
   def parse(self):
-    return self.pb.parseTree
+    raise NotImplementedError
 
   @property
   def natlog_polarities(self):
