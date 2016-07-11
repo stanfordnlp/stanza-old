@@ -117,13 +117,31 @@ class AnnotatedDocument(Document):
   def dict_to_pb(json_dict):
     sentences = [AnnotatedSentence.dict_to_pb(d) for d in json_dict['sentences']]
     doc = CoreNLP_pb2.Document()
-    # TODO(kelvin): set doc.text and other available properties
     doc.sentence.extend(sentences)
+    doc.text = AnnotatedDocument._reconstruct_text_from_sentence_pbs(sentences)
     return doc
+
+  @staticmethod
+  def _reconstruct_text_from_sentence_pbs(sentence_pbs):
+
+    before = lambda sentence_pb: sentence_pb.token[0].before
+    after = lambda sentence_pb: sentence_pb.token[-1].after
+
+    text = []
+    for i, sent in enumerate(sentence_pbs):
+      if i == 0:
+        text.append(before(sent))
+      text.append(sent.text)
+      text.append(after(sent))
+    return ''.join(text)
 
   @property
   def coref(self):
     raise NotImplementedError
+
+  @property
+  def text(self):
+    return self.pb.text
 
   def __str__(self):
     return self.pb.text
@@ -152,9 +170,18 @@ class AnnotatedSentence(Sentence):
   def dict_to_pb(json_dict):
     sent = CoreNLP_pb2.Sentence()
     tokens = [AnnotatedToken.dict_to_pb(d) for d in json_dict['tokens']]
-    # TODO(kelvin): set other properties of sentence
     sent.token.extend(tokens)
+    sent.text = AnnotatedSentence._reconstruct_text_from_token_pbs(tokens)
     return sent
+
+  @staticmethod
+  def _reconstruct_text_from_token_pbs(token_pbs):
+    text = []
+    for i, tok in enumerate(token_pbs):
+      if i != 0:
+        text.append(tok.before)
+      text.append(tok.word)
+    return ''.join(text)
 
   def word(self, i):
     return self._tokens[i].word
