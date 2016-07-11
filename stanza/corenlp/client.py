@@ -144,13 +144,14 @@ class AnnotatedDocument(Document):
     return self.pb.text
 
   def __str__(self):
-    return self.pb.text
+    return self.text
 
 
 # TODO(kelvin): finish specifying the Simple interface for AnnotatedSentence
 # http://stanfordnlp.github.io/CoreNLP/simple.html
 # In particular, all the methods that take arguments.
 
+# TODO(kelvin): protocol buffers insert undesirable default values. Deal with these somehow.
 
 class AnnotatedSentence(Sentence):
   def __init__(self, sentence_pb):
