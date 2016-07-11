@@ -160,6 +160,14 @@ class AnnotatedSentence(Sentence):
     return self._tokens[i].word
 
   @property
+  def before(self):
+    return self._tokens[0].before
+
+  @property
+  def after(self):
+    return self._tokens[-1].after
+
+  @property
   def words(self):
     return [tok.word for tok in self._tokens]
 
@@ -238,6 +246,14 @@ class AnnotatedToken(Token):
   @property
   def word(self):
     return self.pb.word
+
+  @property
+  def before(self):
+    return self.pb.before
+
+  @property
+  def after(self):
+    return self.pb.after
 
   @property
   def pos(self):
