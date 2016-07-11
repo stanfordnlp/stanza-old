@@ -212,12 +212,27 @@ class AnnotatedToken(Token):
   @staticmethod
   def dict_to_pb(json_dict):
     tok = CoreNLP_pb2.Token()
-    tok.word = json_dict['word']
-    tok.pos = json_dict['pos']
-    tok.ner = json_dict['ner']
-    tok.lemma = json_dict['lemma']
-    tok.wikipediaEntity = json_dict['entitylink']
-    # TODO(kelvin): set other properties of token
+
+    def assign_if_present(pb_key, dict_key):
+      if dict_key in json_dict:
+        setattr(tok, pb_key, json_dict[dict_key])
+
+    mapping = {
+      'after': 'after',
+      'before': 'before',
+      'beginChar': 'characterOffsetBegin',
+      'endChar': 'characterOffsetEnd',
+      'originalText': 'originalText',
+      'word': 'word',
+      'pos': 'pos',
+      'ner': 'ner',
+      'lemma': 'lemma',
+      'wikipediaEntity': 'entitylink',
+    }
+
+    for pb_key, dict_key in mapping.items():
+      assign_if_present(pb_key, dict_key)
+
     return tok
 
   @property
