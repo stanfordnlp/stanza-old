@@ -151,6 +151,10 @@ class AnnotatedSentence(Sentence):
     return self.text
 
   @staticmethod
+  def from_dict(json_dict):
+    return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict))
+
+  @staticmethod
   def dict_to_pb(json_dict):
     sent = CoreNLP_pb2.Sentence()
     tokens = [AnnotatedToken.dict_to_pb(d) for d in json_dict['tokens']]
@@ -227,6 +231,10 @@ class AnnotatedSentence(Sentence):
 class AnnotatedToken(Token):
   def __init__(self, token_pb):
     self.pb = token_pb
+
+  @staticmethod
+  def from_dict(json_dict):
+    return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict))
 
   @staticmethod
   def dict_to_pb(json_dict):
