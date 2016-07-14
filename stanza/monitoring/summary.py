@@ -212,6 +212,7 @@ class Histogram(object):
     bucket_limit: -1.0
     bucket_limit: 0.0
     bucket_limit: 1.0
+    bucket_limit: 2.0
     bucket: 0.0
     bucket: 1.0
     bucket: 0.0
@@ -231,7 +232,7 @@ class Histogram(object):
         self.num = 0
         self.sum = 0.0
         self.sum_squares = 0.0
-        self.buckets = np.zeros((len(self.bucket_limits) + 1,))
+        self.buckets = np.zeros((len(self.bucket_limits),))
 
     def add(self, arr):
         if not isinstance(arr, np.ndarray):
@@ -244,7 +245,7 @@ class Histogram(object):
         self.num += len(arr)
         self.sum_squares += (arr ** 2).sum()
 
-        indices = np.searchsorted(self.bucket_limits, arr)
+        indices = np.searchsorted(self.bucket_limits, arr, side='right')
         new_counts = np.bincount(indices, minlength=self.buckets.shape[0])
         self.buckets += new_counts
 
@@ -259,11 +260,10 @@ class Histogram(object):
         bucket_limits = []
         buckets = []
         for i, (end, count) in enumerate(izip(self.bucket_limits, self.buckets)):
-            if (count > 0.0 or i >= len(self.bucket_limits) or
-                    self.buckets[i + 1] > 0.0):
+            if (i == len(self.bucket_limits) - 1 or
+                    count > 0.0 or self.buckets[i + 1] > 0.0):
                 bucket_limits.append(float(end))
                 buckets.append(float(count))
-        buckets.append(float(self.buckets[-1]))
 
         p.bucket_limit.extend(bucket_limits)
         p.bucket.extend(buckets)
@@ -338,3 +338,12 @@ __all__ = [
     'read_events',
     'write_events',
 ]
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('Usage: summary.py [summary_file.tfevents]')
+        sys.exit(1)
+    with open(sys.argv[1], 'rb') as infile:
+        for event in read_events(infile):
+            print(event)
