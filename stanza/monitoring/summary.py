@@ -247,6 +247,10 @@ class Histogram(object):
 
         indices = np.searchsorted(self.bucket_limits, arr, side='right')
         new_counts = np.bincount(indices, minlength=self.buckets.shape[0])
+        if new_counts.shape[0] > self.buckets.shape[0]:
+            # This should only happen with nans and extremely large values
+            assert new_counts.shape[0] == self.buckets.shape[0] + 1, new_counts.shape
+            new_counts = new_counts[:self.buckets.shape[0]]
         self.buckets += new_counts
 
     def encode_to_proto(self):
