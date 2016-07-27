@@ -8,15 +8,24 @@ else
     target_dir="$1"
 fi
 
-script_dir="$(readlink -e "$(dirname $0)")"
+script_dir="$(dirname "$(readlink -e $0)")"
+
+if [ -e "$script_dir"/templates ]; then
+    templates_dir="$script_dir"/templates
+else
+    python -c 'import stanza'
+    stanza_dir="$(dirname "$(python -c 'import stanza; print(stanza.__file__)')")"
+    templates_dir="$stanza_dir"/research/templates
+fi
+
 
 mkdir -p "$target_dir"
 echo "Copying template files"
-cp -nr "$script_dir"/templates/* "$target_dir"/
+cp -nr "$templates_dir"/* "$target_dir"/
 
 cd "$target_dir"
-mv coveragerc .coveragerc
-mv gitignore .gitignore
+mv -n coveragerc .coveragerc
+mv -n gitignore .gitignore
 
 git init
 git add .
