@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-echo 'Installing Stanza dependencies...'
-pip install ConfigArgParse 'pyhocon==0.3.18' pypng 'Protobuf>=3.0.0b2'
+echo 'Installing dependencies...'
+pip install ConfigArgParse 'pyhocon==0.3.18' pypng 'Protobuf>=3.0.0b2' python-Levenshtein
 
 if [ ! -e tensorflow ]; then
     echo 'Checking for tensorboard protos...'
