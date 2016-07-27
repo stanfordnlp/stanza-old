@@ -170,8 +170,8 @@ your repo and contribute your changes back to the master repo:
     # Put a symlink to the actual module somewhere where your code needs it
     ln -s third-party/stanza/stanza stanza
     # Add aliases for the two things you'll need to do with the subtree
-    git alias stanza-update subtree pull --prefix third-party/stanza stanza develop --squash
-    git alias stanza-push subtree push --prefix third-party/stanza stanza develop
+    git config alias.stanza-update 'subtree pull --prefix third-party/stanza stanza develop --squash'
+    git config alias.stanza-push 'subtree push --prefix third-party/stanza stanza develop'
 
 After this, you can use the aliases to push and pull Stanza like so:
 
