@@ -62,6 +62,4 @@ docs/_build/
 # PyBuilder
 target/
 
-# Protobuf files for minimal tensorflow installation
-tensorflow
 .ipynb_checkpoints
