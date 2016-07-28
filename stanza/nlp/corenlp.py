@@ -6,6 +6,11 @@ from stanza.nlp.data import Document, Sentence, Token
 
 __author__ = 'kelvinguu, vzhong, wmonroe4'
 
+class AnnotationException(Exception):
+    """
+    Exception raised when there was an error communicating with the CoreNLP server.
+    """
+    pass
 
 class CoreNLPClient(object):
   """
@@ -27,7 +32,7 @@ class CoreNLPClient(object):
       r.raise_for_status()
       return r
     except requests.HTTPError:
-      raise RuntimeError(r.text)
+      raise AnnotationException(r.text)
 
   def annotate_dict(self, text, annotators):
     """Return a dict from the CoreNLP server, containing annotations of the text.
