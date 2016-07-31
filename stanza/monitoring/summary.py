@@ -1,5 +1,5 @@
 '''
->>> fs = patcher('stanza.research.summary', '/test'); open = fs.start()
+>>> fs = patcher('stanza.monitoring.summary', '/test'); open = fs.start()
 ... # ^ for doctest; ignore
 
 A nearly pure-Python module for logging output to a file in TensorBoard's
@@ -140,7 +140,7 @@ class SummaryWriter(object):
         :param str tag: Label for this value
         :param float val: Scalar to graph at this time step (y-axis)
         '''
-        summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(val))])
+        summary = Summary(value=[Summary.Value(tag=tag, simple_value=float(np.float32(val)))])
         self._add_event(step, summary)
 
     def log_histogram(self, step, tag, val):
@@ -181,6 +181,7 @@ class SummaryWriter(object):
 
 _default_buckets = None
 
+
 def default_buckets():
     global _default_buckets
     if _default_buckets is None:
@@ -211,6 +212,7 @@ class Histogram(object):
     bucket_limit: -1.0
     bucket_limit: 0.0
     bucket_limit: 1.0
+    bucket_limit: 2.0
     bucket: 0.0
     bucket: 1.0
     bucket: 0.0
@@ -230,7 +232,7 @@ class Histogram(object):
         self.num = 0
         self.sum = 0.0
         self.sum_squares = 0.0
-        self.buckets = np.zeros((len(self.bucket_limits) + 1,))
+        self.buckets = np.zeros((len(self.bucket_limits),))
 
     def add(self, arr):
         if not isinstance(arr, np.ndarray):
@@ -243,8 +245,12 @@ class Histogram(object):
         self.num += len(arr)
         self.sum_squares += (arr ** 2).sum()
 
-        indices = np.searchsorted(self.bucket_limits, arr)
+        indices = np.searchsorted(self.bucket_limits, arr, side='right')
         new_counts = np.bincount(indices, minlength=self.buckets.shape[0])
+        if new_counts.shape[0] > self.buckets.shape[0]:
+            # This should only happen with nans and extremely large values
+            assert new_counts.shape[0] == self.buckets.shape[0] + 1, new_counts.shape
+            new_counts = new_counts[:self.buckets.shape[0]]
         self.buckets += new_counts
 
     def encode_to_proto(self):
@@ -258,11 +264,10 @@ class Histogram(object):
         bucket_limits = []
         buckets = []
         for i, (end, count) in enumerate(izip(self.bucket_limits, self.buckets)):
-            if (count > 0.0 or i >= len(self.bucket_limits) or
-                    self.buckets[i + 1] > 0.0):
+            if (i == len(self.bucket_limits) - 1 or
+                    count > 0.0 or self.buckets[i + 1] > 0.0):
                 bucket_limits.append(float(end))
                 buckets.append(float(count))
-        buckets.append(float(self.buckets[-1]))
 
         p.bucket_limit.extend(bucket_limits)
         p.bucket.extend(buckets)
@@ -337,3 +342,12 @@ __all__ = [
     'read_events',
     'write_events',
 ]
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('Usage: summary.py [summary_file.tfevents]')
+        sys.exit(1)
+    with open(sys.argv[1], 'rb') as infile:
+        for event in read_events(infile):
+            print(event)

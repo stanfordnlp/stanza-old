@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+if [ "$#" == "0" ]; then
+    target_dir="."
+else
+    target_dir="$1"
+fi
+
+script_dir="$(dirname "$(readlink -e $0)")"
+
+if [ -e "$script_dir"/templates ]; then
+    templates_dir="$script_dir"/templates
+else
+    python -c 'import stanza'
+    stanza_dir="$(dirname "$(python -c 'import stanza; print(stanza.__file__)')")"
+    templates_dir="$stanza_dir"/research/templates
+fi
+
+
+mkdir -p "$target_dir"
+echo "Copying template files"
+cp -nr "$templates_dir"/* "$target_dir"/
+
+cd "$target_dir"
+mv -n coveragerc .coveragerc
+mv -n gitignore .gitignore
+
+git init
+git add .
+git commit -am 'Initial commit'
+
+# Setup subtree
+if [[ ! "$SUBTREE" =~ ^[Nn0Ff] ]]; then
+    echo "Setting up Stanza subtree"
+    # Add Stanza as a remote repo
+    git remote add stanza https://github.com/stanfordnlp/stanza.git
+    # Import the contents of the repo as a subtree
+    git subtree add --prefix third-party/stanza stanza develop --squash
+    # Put a symlink to the actual module somewhere where your code needs it
+    ln -s third-party/stanza/stanza stanza
+    # Add aliases for the two things you'll need to do with the subtree
+    git config alias.stanza-update 'subtree pull --prefix third-party/stanza stanza develop --squash'
+    git config alias.stanza-push 'subtree push --prefix third-party/stanza stanza develop'
+else
+    echo "Skipping Stanza setup"
+fi
+
+echo "Quickstart project created at $target_dir"

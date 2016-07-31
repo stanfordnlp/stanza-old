@@ -5,7 +5,6 @@ __author__ = 'victor, kelvinguu'
 
 from abc import ABCMeta, abstractmethod
 from collections import Counter, namedtuple, OrderedDict
-from itertools import izip
 import numpy as np
 from copy import copy
 import zipfile
@@ -83,6 +82,14 @@ class Vocab(BaseVocab, OrderedDict):
     def __str__(self):
         return 'Vocab(%d words)' % len(self)
 
+    def __eq__(self, other):
+        if isinstance(other, Vocab):
+            return super(Vocab, self).__eq__(other)
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def add(self, word, count=1):
         """Add a word to the vocabulary and return its index.
 
@@ -126,6 +133,22 @@ class Vocab(BaseVocab, OrderedDict):
         """
         return self._counts[w]
 
+    def subset(self, words):
+        """Get a new Vocab containing only the specified subset of words.
+
+        If w is in words, but not in the original vocab, it will NOT be in the subset vocab.
+        Indices will be in the order of `words`. Counts from the original vocab are preserved.
+
+        :return (Vocab): a new Vocab object
+        """
+        v = self.__class__(unk=self._unk)
+        unique = lambda seq: len(set(seq)) == len(seq)
+        assert unique(words)
+        for w in words:
+            if w in self:
+                v.add(w, count=self.count(w))
+        return v
+
     @property
     def _index2word(self):
         """Mapping from indices to words.
@@ -152,7 +175,8 @@ class Vocab(BaseVocab, OrderedDict):
 
     def prune_rares(self, cutoff=2):
         """
-        returns a **new** `Vocab` object that is similar to this one but with rare words removed. Note that the indices in the new `Vocab` will be remapped (because rare words will have been removed).
+        returns a **new** `Vocab` object that is similar to this one but with rare words removed.
+        Note that the indices in the new `Vocab` will be remapped (because rare words will have been removed).
 
         :param cutoff: words occuring less than this number of times are removed from the vocabulary.
 
@@ -160,12 +184,8 @@ class Vocab(BaseVocab, OrderedDict):
 
         NOTE: UNK is never pruned.
         """
-        # make a deep copy and reset its contents
-        v = self.__class__(unk=self._unk)
-        for w in self:
-            if self._counts[w] >= cutoff or w == self._unk:  # don't remove unk
-                v.add(w, count=self._counts[w])
-        return v
+        keep = lambda w: self.count(w) >= cutoff or w == self._unk
+        return self.subset([w for w in self if keep(w)])
 
     def sort_by_decreasing_count(self):
         """Return a **new** `Vocab` object that is ordered by decreasing count.
@@ -177,14 +197,8 @@ class Vocab(BaseVocab, OrderedDict):
 
         NOTE: UNK will remain at index 0, regardless of its frequency.
         """
-        v = self.__class__(unk=self._unk)  # use __class__ to support subclasses
-
-        # UNK gets index 0
-        v.add(self._unk, count=self._counts[self._unk])
-
-        for word, count in self._counts.most_common():
-            if word != self._unk:
-                v.add(word, count=count)
+        words = [w for w, ct in self._counts.most_common()]
+        v = self.subset(words)
         return v
 
     @classmethod
@@ -231,10 +245,10 @@ class Vocab(BaseVocab, OrderedDict):
 
         return vocab
 
-    def to_file(self, file):
+    def to_file(self, f):
         """Write vocab to a file.
 
-        :param file: a file object, e.g. as returned by calling `open`
+        :param (file) f: a file object, e.g. as returned by calling `open`
 
         File format:
             word0<TAB>count0
@@ -245,18 +259,18 @@ class Vocab(BaseVocab, OrderedDict):
         """
         for word in self._index2word:
             count = self._counts[word]
-            file.write('{}\t{}\n'.format(word, count))
+            f.write('{}\t{}\n'.format(word, count))
 
     @classmethod
-    def from_file(cls, file):
+    def from_file(cls, f):
         """Load vocab from a file.
 
-        :param file: a file object, e.g. as returned by calling `open`
+        :param (file) f: a file object, e.g. as returned by calling `open`
         :return: a vocab object. The 0th line of the file is assigned to index 0, and so on...
         """
         word2index = {}
         counts = Counter()
-        for i, line in enumerate(file):
+        for i, line in enumerate(f):
             word, count_str = line.strip().split('\t')
             word2index[word] = i
             counts[word] = float(count_str)
@@ -280,7 +294,6 @@ class FrozenVocab(BaseVocab):
 
 
 class EmbeddedVocab(Vocab):
-
     def get_embeddings(self):
         """
         :return: the embedding matrix for this vocabulary object.
@@ -302,7 +315,6 @@ class EmbeddedVocab(Vocab):
 
 
 class SennaVocab(EmbeddedVocab):
-
     """
     Vocab object with initialization from Senna by Collobert et al.
 
@@ -345,7 +357,7 @@ class SennaVocab(EmbeddedVocab):
         E = rand((len(self), self.n_dim)).astype(dtype)
 
         seen = []
-        for word_emb in izip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
+        for word_emb in zip(self.gen_word_list(words), self.gen_embeddings(embeddings)):
             w, e = word_emb
             if w in self:
                 seen += [w]
@@ -355,7 +367,6 @@ class SennaVocab(EmbeddedVocab):
 
 
 class GloveVocab(EmbeddedVocab):
-
     """
     Vocab object with initialization from GloVe by Pennington et al.
 
@@ -401,7 +412,8 @@ class GloveVocab(EmbeddedVocab):
 
         with zipfile.ZipFile(open(zip_file)) as zf:
             # should be only 1 txt file
-            names = [info.filename for info in zf.infolist() if info.filename.endswith('.txt') and n_dim in info.filename]
+            names = [info.filename for info in zf.infolist() if
+                     info.filename.endswith('.txt') and n_dim in info.filename]
             if not names:
                 s = 'no .txt files found in zip file that matches {}-dim!'.format(n_dim)
                 s += '\n available files: {}'.format(names)

@@ -1,8 +1,35 @@
+import pytest
+
 __author__ = 'victor, kelvinguu'
 
 from collections import Counter
 from unittest import TestCase
 from stanza.text.vocab import Vocab, SennaVocab, GloveVocab
+
+
+# new tests are written in the lighter-weight pytest format
+@pytest.fixture
+def vocab():
+    v = Vocab('unk')
+    v.update('zero one two two three three three'.split())
+    return v
+
+
+def test_eq(vocab):
+    v = Vocab('unk')
+    v.update('zero one two two three three three'.split())
+    assert v == vocab
+    v.add('zero', count=10)
+    assert v == vocab  # equality doesn't depend on count
+    v.add('four')
+    assert v != vocab
+
+
+def test_subset(vocab):
+    v = vocab.subset(['zero', 'three', 'two'])
+    correct = {'unk': 0, 'zero': 1, 'three': 2, 'two': 3}
+    assert dict(v) == correct
+    assert v._counts == Counter({'unk': 0, 'zero': 1, 'three': 3, 'two': 2})
 
 
 class TestVocab(TestCase):
