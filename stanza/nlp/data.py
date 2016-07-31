@@ -3,18 +3,17 @@ from collections import Sequence
 
 __author__ = 'kelvinguu'
 
-
 class Document(Sequence):
-  """A sequence of Sentence objects."""
-  pass
+    """A sequence of Sentence objects."""
+    pass
 
 
 class Sentence(Sequence):
-  """A sequence of Token objects."""
-  pass
+    """A sequence of Token objects."""
+    pass
 
 
 class Token(object):
-  @abstractproperty
-  def word(self):
-    pass
+    @abstractproperty
+    def word(self):
+        pass
