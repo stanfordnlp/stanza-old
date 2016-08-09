@@ -40,7 +40,8 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
 
     if write_data:
         config.dump([inst.__dict__ for inst in eval_data],
-                    'data.%sjsons' % split_prefix, lines=True)
+                    'data.%sjsons' % split_prefix,
+                    default=lambda o: o.__dict__, lines=True)
 
     results = {split_prefix + 'num_params': learner.num_params}
 
