@@ -1,3 +1,5 @@
+from itertools import izip
+
 import requests
 from collections import defaultdict
 from google.protobuf.internal.decoder import _DecodeVarint
@@ -98,7 +100,16 @@ class AnnotatedDocument(Document):
     def __init__(self, doc_pb, json_dict=None):
         self.pb = doc_pb
         self._json = json_dict
-        self._sentences = [AnnotatedSentence(sent_pb) for sent_pb in self.pb.sentence]
+
+        if self._json:
+            sentence_jsons = self._json['sentences']
+        else:
+            sentence_jsons = [None] * len(self.pb)
+
+        self._sentences = []
+        for sent_pb, sent_json in izip(self.pb.sentence, sentence_jsons):
+            sent = AnnotatedSentence(sent_pb, self, sent_json)
+            self._sentences.append(sent)
 
     def __getitem__(self, i):
         return self._sentences[i]
@@ -185,9 +196,15 @@ class AnnotatedDocument(Document):
 class AnnotatedSentence(Sentence):
     def __init__(self, sentence_pb, document=None, json_dict=None):
         self.pb = sentence_pb
-        self._tokens = [AnnotatedToken(tok_pb) for tok_pb in self.pb.token]
         self.document = document
         self._json = json_dict
+
+        if self._json:
+            token_jsons = self._json['tokens']
+        else:
+            token_jsons = [None] * len(self.pb.token)
+
+        self._tokens = [AnnotatedToken(tok_pb, self, tok_json) for tok_pb, tok_json in izip(self.pb.token, token_jsons)]
         # Fill in the text attribute if needed.
         if len(self.pb.text) == 0:
             self.pb.text = AnnotatedSentence._reconstruct_text_from_token_pbs(self.pb.token)
