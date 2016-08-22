@@ -381,7 +381,7 @@ class AnnotatedToken(Token):
 
     @staticmethod
     def from_dict(json_dict):
-        return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict))
+        return AnnotatedToken(AnnotatedToken.dict_to_pb(json_dict))
 
     @staticmethod
     def dict_to_pb(json_dict):
