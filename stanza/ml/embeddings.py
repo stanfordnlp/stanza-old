@@ -1,12 +1,14 @@
-__author__ = 'kelvinguu'
-
+from collections import Mapping
 from contextlib import contextmanager
 import logging
 import numpy as np
 from stanza.text import Vocab
 
 
-class Embeddings(object):
+__author__ = 'kelvinguu'
+
+
+class Embeddings(Mapping):
     """A map from strings to vectors.
 
     Vectors are stored as a numpy array.
@@ -29,6 +31,12 @@ class Embeddings(object):
     def __getitem__(self, w):
         idx = self.vocab.word2index(w)
         return self.array[idx]
+
+    def __iter__(self):
+        return iter(self.vocab)
+
+    def __len__(self):
+        return len(self.vocab)
 
     def __contains__(self, item):
         return item in self.vocab
