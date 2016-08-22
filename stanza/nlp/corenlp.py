@@ -95,8 +95,9 @@ class AnnotatedDocument(Document):
     A shim over the protobuffer exposing key methods.
     """
 
-    def __init__(self, doc_pb):
+    def __init__(self, doc_pb, json_dict=None):
         self.pb = doc_pb
+        self._json = json_dict
         self._sentences = [AnnotatedSentence(sent_pb) for sent_pb in self.pb.sentence]
 
     def __getitem__(self, i):
@@ -112,9 +113,14 @@ class AnnotatedDocument(Document):
         PREVIEW_LEN = 50
         return "[Document: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
+    def to_dict(self):
+        if self._json is None:
+            raise AttributeError('No JSON representation.')
+        return self._json
+
     @staticmethod
     def from_dict(json_dict):
-        return AnnotatedDocument(AnnotatedDocument.dict_to_pb(json_dict))
+        return AnnotatedDocument(AnnotatedDocument.dict_to_pb(json_dict), json_dict=json_dict)
 
     @staticmethod
     def dict_to_pb(json_dict):
@@ -177,14 +183,20 @@ class AnnotatedDocument(Document):
 # TODO(kelvin): protocol buffers insert undesirable default values. Deal with these somehow.
 
 class AnnotatedSentence(Sentence):
-    def __init__(self, sentence_pb, document=None):
+    def __init__(self, sentence_pb, document=None, json_dict=None):
         self.pb = sentence_pb
         self._tokens = [AnnotatedToken(tok_pb) for tok_pb in self.pb.token]
         self.document = document
+        self._json = json_dict
         # Fill in the text attribute if needed.
         if len(self.pb.text) == 0:
             self.pb.text = AnnotatedSentence._reconstruct_text_from_token_pbs(self.pb.token)
             print(self.pb.text)
+
+    def to_dict(self):
+        if self._json is None:
+            raise AttributeError('No JSON representation.')
+        return self._json
 
     def __getitem__(self, i):
         return self._tokens[i]
@@ -201,7 +213,7 @@ class AnnotatedSentence(Sentence):
 
     @staticmethod
     def from_dict(json_dict):
-        return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict))
+        return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict), json_dict=json_dict)
 
     @staticmethod
     def dict_to_pb(json_dict):
@@ -371,9 +383,10 @@ class AnnotatedSentence(Sentence):
 
 
 class AnnotatedToken(Token):
-    def __init__(self, token_pb, sentence=None):
+    def __init__(self, token_pb, sentence=None, json_dict=None):
         self.pb = token_pb
         self.sentence = sentence
+        self._json = json_dict
 
     def __str__(self):
         return self.pb.word
@@ -381,9 +394,14 @@ class AnnotatedToken(Token):
     def __repr__(self):
         return "[Token: {}]".format(self.pb.word)
 
+    def to_dict(self):
+        if self._json is None:
+            raise AttributeError('No JSON representation.')
+        return self._json
+
     @staticmethod
     def from_dict(json_dict):
-        return AnnotatedToken(AnnotatedToken.dict_to_pb(json_dict))
+        return AnnotatedToken(AnnotatedToken.dict_to_pb(json_dict), json_dict=json_dict)
 
     @staticmethod
     def dict_to_pb(json_dict):
