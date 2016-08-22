@@ -168,10 +168,10 @@ class Embeddings(object):
             self.to_files(array_file, vocab_file)
 
     @classmethod
-    def from_file_path(self, path_prefix):
+    def from_file_path(cls, path_prefix):
         """Load the embedding matrix and the vocab from <path_prefix>.npy and <path_prefix>.vocab.
 
         :param (str) path_prefix: path prefix of the saved files
         """
-        with self._path_prefix_to_files(path_prefix, 'r') as (array_file, vocab_file):
-            return self.from_files(array_file, vocab_file)
+        with cls._path_prefix_to_files(path_prefix, 'r') as (array_file, vocab_file):
+            return cls.from_files(array_file, vocab_file)
