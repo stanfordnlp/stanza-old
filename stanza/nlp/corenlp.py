@@ -221,12 +221,23 @@ class AnnotatedSentence(Sentence):
     def __len__(self):
         return len(self._tokens)
 
+    def __eq__(self, other):
+        if not isinstance(other, AnnotatedSentence):
+            return False
+        return self.pb == other.pb
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __str__(self):
-        return self.pb.text
+        return self.text.encode('utf-8')
+
+    def __unicode__(self):
+        return self.text
 
     def __repr__(self):
         PREVIEW_LEN = 50
-        return "[Sentence: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
+        return "[Sentence: {}]".format(self.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
     @staticmethod
     def from_json(json_dict):
