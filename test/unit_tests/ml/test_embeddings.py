@@ -23,13 +23,13 @@ def dict_embeddings():
 
 
 def test_to_dict(embeddings, dict_embeddings):
-    d = embeddings.to_dict()
+    d = embeddings.to_json()
     assert d == dict_embeddings
 
 
 def test_from_dict(embeddings, dict_embeddings):
     emb = Embeddings.from_dict(dict_embeddings, 'unk')
-    assert emb.to_dict() == dict_embeddings
+    assert emb.to_json() == dict_embeddings
 
 
 def test_get_item(embeddings):
@@ -67,4 +67,4 @@ def test_k_nearest_approx(embeddings):
 
 def test_subset(embeddings):
     sub = embeddings.subset(['a', 'what'])
-    assert sub.to_dict() == {'a': [6, 7, 8], 'unk': [0, 1, 2], 'what': [3, 4, 5]}
+    assert sub.to_json() == {'a': [6, 7, 8], 'unk': [0, 1, 2], 'what': [3, 4, 5]}

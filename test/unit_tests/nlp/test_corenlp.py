@@ -77,7 +77,7 @@ def json_dict():
 
 def test_token_dict_to_pb(json_dict):
   token_dict = json_dict['sentences'][0]['tokens'][0]
-  token = AnnotatedToken.dict_to_pb(token_dict)
+  token = AnnotatedToken.json_to_pb(token_dict)
   assert token.after == u' '
   assert token.before == u''
   assert token.beginChar == 0
@@ -89,13 +89,13 @@ def test_token_dict_to_pb(json_dict):
 def test_sentence_dict_to_pb(json_dict):
   orig_text = 'Really?'
   sent_dict = json_dict['sentences'][1]
-  sent = AnnotatedSentence.dict_to_pb(sent_dict)
+  sent = AnnotatedSentence.json_to_pb(sent_dict)
   assert sent.text == orig_text
   assert sent.token[1].word == u'?'
 
 
 def test_document_dict_to_pb(json_dict):
   orig_text = 'Belgian swimmers beat the United States. Really?'
-  doc = AnnotatedDocument.dict_to_pb(json_dict)
+  doc = AnnotatedDocument.json_to_pb(json_dict)
   assert doc.text == orig_text
   assert doc.sentence[1].text == 'Really?'

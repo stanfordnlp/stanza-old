@@ -113,18 +113,18 @@ class AnnotatedDocument(Document):
         PREVIEW_LEN = 50
         return "[Document: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
-    def to_dict(self):
+    def to_json(self):
         if self._json is None:
             raise AttributeError('No JSON representation.')
         return self._json
 
     @staticmethod
-    def from_dict(json_dict):
-        return AnnotatedDocument(AnnotatedDocument.dict_to_pb(json_dict), json_dict=json_dict)
+    def from_json(json_dict):
+        return AnnotatedDocument(AnnotatedDocument.json_to_pb(json_dict), json_dict=json_dict)
 
     @staticmethod
-    def dict_to_pb(json_dict):
-        sentences = [AnnotatedSentence.dict_to_pb(d) for d in json_dict['sentences']]
+    def json_to_pb(json_dict):
+        sentences = [AnnotatedSentence.json_to_pb(d) for d in json_dict['sentences']]
         doc = CoreNLP_pb2.Document()
         doc.sentence.extend(sentences)
         doc.text = AnnotatedDocument._reconstruct_text_from_sentence_pbs(sentences)
@@ -193,7 +193,7 @@ class AnnotatedSentence(Sentence):
             self.pb.text = AnnotatedSentence._reconstruct_text_from_token_pbs(self.pb.token)
             print(self.pb.text)
 
-    def to_dict(self):
+    def to_json(self):
         if self._json is None:
             raise AttributeError('No JSON representation.')
         return self._json
@@ -212,13 +212,13 @@ class AnnotatedSentence(Sentence):
         return "[Sentence: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
     @staticmethod
-    def from_dict(json_dict):
-        return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict), json_dict=json_dict)
+    def from_json(json_dict):
+        return AnnotatedSentence(AnnotatedSentence.json_to_pb(json_dict), json_dict=json_dict)
 
     @staticmethod
-    def dict_to_pb(json_dict):
+    def json_to_pb(json_dict):
         sent = CoreNLP_pb2.Sentence()
-        tokens = [AnnotatedToken.dict_to_pb(d) for d in json_dict['tokens']]
+        tokens = [AnnotatedToken.json_to_pb(d) for d in json_dict['tokens']]
         sent.token.extend(tokens)
         sent.text = AnnotatedSentence._reconstruct_text_from_token_pbs(sent.token)
         return sent
@@ -394,17 +394,17 @@ class AnnotatedToken(Token):
     def __repr__(self):
         return "[Token: {}]".format(self.pb.word)
 
-    def to_dict(self):
+    def to_json(self):
         if self._json is None:
             raise AttributeError('No JSON representation.')
         return self._json
 
     @staticmethod
-    def from_dict(json_dict):
-        return AnnotatedToken(AnnotatedToken.dict_to_pb(json_dict), json_dict=json_dict)
+    def from_json(json_dict):
+        return AnnotatedToken(AnnotatedToken.json_to_pb(json_dict), json_dict=json_dict)
 
     @staticmethod
-    def dict_to_pb(json_dict):
+    def json_to_pb(json_dict):
         tok = CoreNLP_pb2.Token()
 
         def assign_if_present(pb_key, dict_key):
