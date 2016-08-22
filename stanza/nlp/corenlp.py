@@ -7,18 +7,20 @@ from stanza.nlp.data import Document, Sentence, Token
 
 __author__ = 'kelvinguu, vzhong, wmonroe4'
 
+
 class AnnotationException(Exception):
     """
     Exception raised when there was an error communicating with the CoreNLP server.
     """
     pass
 
+
 class CoreNLPClient(object):
     """
     A CoreNLP client to the Stanford CoreNLP server.
     """
 
-    DEFAULT_ANNOTATORS="tokenize ssplit lemma pos ner depparse".split()
+    DEFAULT_ANNOTATORS = "tokenize ssplit lemma pos ner depparse".split()
 
     def __init__(self, server='http://localhost:9000', default_annotators=DEFAULT_ANNOTATORS):
         """
@@ -48,7 +50,7 @@ class CoreNLPClient(object):
         properties = {
             'annotators': ','.join(annotators or self.default_annotators),
             'outputFormat': 'json',
-            }
+        }
         return self._request(text, properties).json(strict=False)
 
     def annotate_proto(self, text, annotators=None):
@@ -63,7 +65,7 @@ class CoreNLPClient(object):
             'annotators': ','.join(annotators or self.default_annotators),
             'outputFormat': 'serialized',
             'serializer': 'edu.stanford.nlp.pipeline.ProtobufAnnotationSerializer'
-            }
+        }
         r = self._request(text, properties)
         buffer = r.content  # bytes
 
@@ -87,10 +89,12 @@ class CoreNLPClient(object):
         doc_pb = self.annotate_proto(text, annotators)
         return AnnotatedDocument(doc_pb)
 
+
 class AnnotatedDocument(Document):
     """
     A shim over the protobuffer exposing key methods.
     """
+
     def __init__(self, doc_pb):
         self.pb = doc_pb
         self._sentences = [AnnotatedSentence(sent_pb) for sent_pb in self.pb.sentence]
@@ -195,7 +199,6 @@ class AnnotatedSentence(Sentence):
         PREVIEW_LEN = 50
         return "[Sentence: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
-
     @staticmethod
     def from_dict(json_dict):
         return AnnotatedSentence(AnnotatedSentence.dict_to_pb(json_dict))
@@ -237,7 +240,7 @@ class AnnotatedSentence(Sentence):
         Returns the next sentence
         """
         if self.document is not None:
-            return self.document[self.sentenceIndex+1]
+            return self.document[self.sentenceIndex + 1]
         else:
             raise AttributeError("Document has not been set")
 
@@ -246,10 +249,9 @@ class AnnotatedSentence(Sentence):
         Returns the previous sentence
         """
         if self.document is not None:
-            return self.document[self.sentenceIndex-1]
+            return self.document[self.sentenceIndex - 1]
         else:
             raise AttributeError("Document has not been set")
-
 
     def word(self, i):
         return self._tokens[i].word
@@ -316,7 +318,7 @@ class AnnotatedSentence(Sentence):
             "collapsedCCProcessed",
             "collapsed",
             "enhanced",
-            "enhancedPlusPlus",], "Invalid mode"
+            "enhancedPlusPlus", ], "Invalid mode"
         dep_pb = getattr(self.pb, mode + "Dependencies")
         if dep_pb is None:
             raise AttributeError("No dependencies for mode: " + mode)
@@ -333,16 +335,16 @@ class AnnotatedSentence(Sentence):
     def __getattr__(self, attr):
         return getattr(self.pb, attr)
 
-    #@property
-    #def parse(self):
+    # @property
+    # def parse(self):
     #    raise NotImplementedError()
 
-    #@property
-    #def natlog_polarities(self):
+    # @property
+    # def natlog_polarities(self):
     #    raise NotImplementedError
 
-    #@property
-    #def relations(self, mode="kbp"):
+    # @property
+    # def relations(self, mode="kbp"):
     #    """
     #    Returns any relations found by the annotators.
     #    Valid modes are:
@@ -352,16 +354,16 @@ class AnnotatedSentence(Sentence):
     #    """
     #    raise NotImplementedError()
 
-    #@property
-    #def openie(self):
+    # @property
+    # def openie(self):
     #    raise NotImplementedError
 
-    #@property
-    #def openie_triples(self):
+    # @property
+    # def openie_triples(self):
     #    raise NotImplementedError
 
-    #@property
-    #def mentions(self):
+    # @property
+    # def mentions(self):
     #    """
     #    Supposed to return mentions contained in the sentence.
     #    """
@@ -402,7 +404,7 @@ class AnnotatedToken(Token):
             'ner': 'ner',
             'lemma': 'lemma',
             'wikipediaEntity': 'entitylink',
-            }
+        }
 
         for pb_key, dict_key in mapping.items():
             assign_if_present(pb_key, dict_key)
@@ -452,10 +454,12 @@ class AnnotatedToken(Token):
         """
         return (self.pb.beginChar, self.pb.endChar)
 
+
 class AnnotatedDependencyParseTree():
     """
     Represents a dependency parse tree
     """
+
     def __init__(self, pb, sentence=None):
         self.pb = pb
         self.sentence = sentence
@@ -474,7 +478,7 @@ class AnnotatedDependencyParseTree():
     @property
     def roots(self):
         return self.pb.root
-    
+
     @property
     def parents(self, i):
         return self.inv_graph[i]
@@ -483,9 +487,11 @@ class AnnotatedDependencyParseTree():
     def children(self, i):
         return self.graph[i]
 
+
 # TODO(kelvin): sentence and doc classes that lazily perform annotations
 class LazyDocument(Sentence):
     pass
+
 
 class LazySentence(Sentence):
     pass
