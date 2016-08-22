@@ -39,8 +39,8 @@ class CoreNLPClient(object):
         except requests.HTTPError:
             raise AnnotationException(r.text)
 
-    def annotate_dict(self, text, annotators=None):
-        """Return a dict from the CoreNLP server, containing annotations of the text.
+    def annotate_json(self, text, annotators=None):
+        """Return a JSON dict from the CoreNLP server, containing annotations of the text.
 
         :param (str) text: Text to annotate.
         :param (list[str]) annotators: a list of annotator names
