@@ -75,27 +75,30 @@ def json_dict():
                                        u'word': u'?'}]}]}
 
 
-def test_token_dict_to_pb(json_dict):
-  token_dict = json_dict['sentences'][0]['tokens'][0]
-  token = AnnotatedToken.json_to_pb(token_dict)
-  assert token.after == u' '
-  assert token.before == u''
-  assert token.beginChar == 0
-  assert token.endChar == 7
-  assert token.originalText == u'Belgian'
-  assert token.word == u'Belgian'
+class TestAnnotatedToken(object):
+    def test_json_to_pb(self, json_dict):
+      token_dict = json_dict['sentences'][0]['tokens'][0]
+      token = AnnotatedToken.json_to_pb(token_dict)
+      assert token.after == u' '
+      assert token.before == u''
+      assert token.beginChar == 0
+      assert token.endChar == 7
+      assert token.originalText == u'Belgian'
+      assert token.word == u'Belgian'
 
 
-def test_sentence_dict_to_pb(json_dict):
-  orig_text = 'Really?'
-  sent_dict = json_dict['sentences'][1]
-  sent = AnnotatedSentence.json_to_pb(sent_dict)
-  assert sent.text == orig_text
-  assert sent.token[1].word == u'?'
+class TestAnnotatedSentence(object):
+    def test_json_to_pb(self, json_dict):
+      orig_text = 'Really?'
+      sent_dict = json_dict['sentences'][1]
+      sent = AnnotatedSentence.json_to_pb(sent_dict)
+      assert sent.text == orig_text
+      assert sent.token[1].word == u'?'
 
 
-def test_document_dict_to_pb(json_dict):
-  orig_text = 'Belgian swimmers beat the United States. Really?'
-  doc = AnnotatedDocument.json_to_pb(json_dict)
-  assert doc.text == orig_text
-  assert doc.sentence[1].text == 'Really?'
+class TestAnnotatedDocument(object):
+    def test_json_to_pb(self, json_dict):
+      orig_text = 'Belgian swimmers beat the United States. Really?'
+      doc = AnnotatedDocument.json_to_pb(json_dict)
+      assert doc.text == orig_text
+      assert doc.sentence[1].text == 'Really?'
