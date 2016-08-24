@@ -425,7 +425,9 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         if dep_pb is None:
             raise AttributeError("No dependencies for mode: " + mode)
         else:
-            return AnnotatedDependencyParseTree(dep_pb, self)
+            tree = AnnotatedDependencyParseTree(dep_pb)
+            tree.sentence = self
+            return tree
 
     @property
     def character_span(self):
@@ -553,15 +555,27 @@ class AnnotatedToken(Token, ProtobufBacked):
         return (self.pb.beginChar, self.pb.endChar)
 
 
-class AnnotatedDependencyParseTree():
+class AnnotatedDependencyParseTree(ProtobufBacked):
     """
     Represents a dependency parse tree
     """
+    @classmethod
+    def _from_pb(cls, pb):
+        return cls(pb)
 
-    def __init__(self, pb, sentence=None):
-        self.pb = pb
-        self.sentence = sentence
+    def __init__(self, pb):
         self.graph, self.inv_graph = AnnotatedDependencyParseTree.parse_graph(pb.edge)
+
+    def json_to_pb(cls, json_dict):
+        raise NotImplementedError
+
+    @property
+    def sentence(self):
+        return self._sentence
+
+    @sentence.setter
+    def sentence(self, val):
+        self._sentence = val
 
     @staticmethod
     def parse_graph(edges):
