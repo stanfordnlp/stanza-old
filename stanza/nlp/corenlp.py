@@ -104,7 +104,7 @@ class AnnotatedDocument(Document):
         if self._json:
             sentence_jsons = self._json['sentences']
         else:
-            sentence_jsons = [None] * len(self.pb)
+            sentence_jsons = [None] * len(self.pb.sentence)
 
         self._sentences = []
         for sent_pb, sent_json in izip(self.pb.sentence, sentence_jsons):
