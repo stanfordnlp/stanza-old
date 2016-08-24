@@ -160,6 +160,7 @@ class ProtobufBacked(object):
         pb = cls.json_to_pb(json_dict)
         obj = cls.from_pb(pb)
         obj._json = json_dict  # set the JSON
+        return obj
 
 
 class AnnotatedDocument(Document, ProtobufBacked):
@@ -168,6 +169,9 @@ class AnnotatedDocument(Document, ProtobufBacked):
     """
     @classmethod
     def _from_pb(cls, pb):
+        if len(pb.text) == 0:
+            pb.text = cls._reconstruct_text_from_sentence_pbs(pb.sentence)
+            print(pb.text)
         return cls(pb)
 
     def __init__(self, pb):
@@ -314,6 +318,7 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         sent = CoreNLP_pb2.Sentence()
         tokens = [AnnotatedToken.json_to_pb(d) for d in json_dict['tokens']]
         sent.token.extend(tokens)
+        sent.text = AnnotatedSentence._reconstruct_text_from_token_pbs(tokens)
         return sent
 
     @property
