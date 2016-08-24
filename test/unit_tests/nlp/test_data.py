@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 from stanza.nlp.corenlp import AnnotatedDocument, AnnotatedToken, AnnotatedSentence
@@ -102,3 +104,35 @@ class TestAnnotatedDocument(object):
         doc = AnnotatedDocument.json_to_pb(json_dict)
         assert doc.text == orig_text
         assert doc.sentence[1].text == 'Really?'
+
+    def test_json(self, json_dict):
+        doc = AnnotatedDocument.from_json(json_dict)
+        new_json = doc.to_json()
+        assert json_dict == new_json
+
+    def test_eq(self, json_dict):
+        # exact copy
+        json_dict1 = copy.deepcopy(json_dict)
+
+        # same as json_dict, but 'Belgian' is no longer capitalized
+        json_dict2 = copy.deepcopy(json_dict)
+        first_token_json = json_dict2['sentences'][0]['tokens'][0]
+        first_token_json[u'originalText'] = 'belgian'
+        first_token_json[u'word'] = 'belgian'
+
+        doc = AnnotatedDocument.from_json(json_dict)
+        doc1 = AnnotatedDocument.from_json(json_dict1)
+        doc2 = AnnotatedDocument.from_json(json_dict2)
+
+        assert doc == doc1
+        assert doc != doc2
+
+    @pytest.fixture
+    def doc(self, json_dict):
+        return AnnotatedDocument.from_json(json_dict)
+
+    def test_properties(self, doc):
+        assert doc[0][1].word == u'swimmers'
+        assert doc[0][2].character_span == (17, 21)
+        assert doc[0].document == doc
+
