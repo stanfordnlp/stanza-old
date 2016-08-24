@@ -184,6 +184,8 @@ class AnnotatedDocument(Document, ProtobufBacked):
 
     def __init__(self, pb):
         self._sentences = [AnnotatedSentence.from_pb(sent_pb) for sent_pb in pb.sentence]
+        for sent in self._sentences:
+            sent.document = self
 
     def __getitem__(self, i):
         return self._sentences[i]
