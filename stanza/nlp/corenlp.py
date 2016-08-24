@@ -94,6 +94,32 @@ class CoreNLPClient(object):
 
 
 class ProtobufBacked(object):
+    """An object backed by a Protocol buffer.
+
+    ProtobufBacked objects should keep their constructors private.
+    They should be exclusively initialized using `from_pb`.
+    """
+    @classmethod
+    def from_pb(cls, pb):
+        """Instantiate the object from a protocol buffer.
+
+        Args:
+            pb (protobuf)
+
+        Save a reference to the protocol buffer on the object.
+        """
+        obj = cls._from_pb(pb)
+        obj._pb = pb
+        return obj
+
+    @abstractmethod
+    def _from_pb(cls, pb):
+        """Instantiate the object from a protocol buffer.
+
+        Note: this should be a classmethod.
+        """
+        pass
+
     @property
     def pb(self):
         """Get the backing protocol buffer."""
@@ -106,24 +132,6 @@ class ProtobufBacked(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-    @abstractmethod
-    def _from_pb(cls, pb):
-        """Instantiate the object from a protocol buffer.
-
-        Note: this should be a classmethod.
-        """
-        pass
-
-    @classmethod
-    def from_pb(cls, pb):
-        """Instantiate the object from a protocol buffer.
-
-        Ensures that the object has a protocol buffer property.
-        """
-        obj = cls._from_pb(pb)
-        obj._pb = pb  # set the protocol buffer
-        return obj
 
     @property
     def json(self):
@@ -266,6 +274,9 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
             print(pb.text)
         return cls(pb)
 
+    def __init__(self, pb):
+        self._tokens = [AnnotatedToken.from_pb(tok_pb) for tok_pb in pb.token]
+
     @property
     def document(self):
         try:
@@ -286,9 +297,6 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
                 text.append(tok.before)
             text.append(tok.word)
         return ''.join(text)
-
-    def __init__(self, pb):
-        self._tokens = [AnnotatedToken.from_pb(tok_pb) for tok_pb in pb.token]
 
     @ProtobufBacked.json.setter
     def json(self, json_dict):
@@ -467,10 +475,7 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
 class AnnotatedToken(Token, ProtobufBacked):
     @classmethod
     def _from_pb(cls, pb):
-        return cls(pb)
-
-    def __init__(self, token_pb):
-        pass
+        return cls()
 
     def __str__(self):
         return self.pb.word
