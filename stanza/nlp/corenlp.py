@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from itertools import izip
 
 import requests
@@ -92,24 +93,85 @@ class CoreNLPClient(object):
         return AnnotatedDocument(doc_pb)
 
 
-class AnnotatedDocument(Document):
+class ProtobufBacked(object):
+    @property
+    def pb(self):
+        """Get the backing protocol buffer."""
+        return self._pb
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        return self.pb == other.pb
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @abstractmethod
+    def _from_pb(cls, pb):
+        """Instantiate the object from a protocol buffer.
+
+        Note: this should be a classmethod.
+        """
+        pass
+
+    @classmethod
+    def from_pb(cls, pb):
+        """Instantiate the object from a protocol buffer.
+
+        Ensures that the object has a protocol buffer property.
+        """
+        obj = cls._from_pb(pb)
+        obj._pb = pb  # set the protocol buffer
+        return obj
+
+    @property
+    def json(self):
+        """The object represented as JSON.
+
+        In the future, this should be computed from the protocol buffer. For now, it is manually set.
+        """
+        try:
+            return self._json
+        except AttributeError:
+            raise AttributeError('No JSON representation available.')
+
+    @json.setter
+    def json(self, json_dict):
+        self._json = json_dict
+
+    def to_json(self):
+        """Same as the json property.
+
+        Provided just because people are accustomed to calling `to_json` on objects.
+        """
+        return self.json
+
+    @abstractmethod
+    def json_to_pb(cls, json_dict):
+        """Convert JSON to protocol buffer.
+
+        Note: This should be a classmethod.
+        """
+        pass
+
+    @classmethod
+    def from_json(cls, json_dict):
+        pb = cls.json_to_pb(json_dict)
+        obj = cls.from_pb(pb)
+        obj._json = json_dict  # set the JSON
+
+
+class AnnotatedDocument(Document, ProtobufBacked):
     """
     A shim over the protobuffer exposing key methods.
     """
+    @classmethod
+    def _from_pb(cls, pb):
+        return cls(pb)
 
-    def __init__(self, doc_pb, json_dict=None):
-        self.pb = doc_pb
-        self._json = json_dict
-
-        if self._json:
-            sentence_jsons = self._json['sentences']
-        else:
-            sentence_jsons = [None] * len(self.pb.sentence)
-
-        self._sentences = []
-        for sent_pb, sent_json in izip(self.pb.sentence, sentence_jsons):
-            sent = AnnotatedSentence(sent_pb, self, sent_json)
-            self._sentences.append(sent)
+    def __init__(self, pb):
+        self._sentences = [AnnotatedSentence.from_pb(sent_pb) for sent_pb in pb.sentence]
 
     def __getitem__(self, i):
         return self._sentences[i]
@@ -124,17 +186,15 @@ class AnnotatedDocument(Document):
         PREVIEW_LEN = 50
         return "[Document: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
-    def to_json(self):
-        if self._json is None:
-            raise AttributeError('No JSON representation.')
-        return self._json
+    @ProtobufBacked.json.setter
+    def json(self, json_dict):
+        self._json = json_dict
+        # propagate JSON to children
+        for sent, sent_json in izip(self._sentences, json_dict['sentences']):
+            sent.json = sent_json
 
-    @staticmethod
-    def from_json(json_dict):
-        return AnnotatedDocument(AnnotatedDocument.json_to_pb(json_dict), json_dict=json_dict)
-
-    @staticmethod
-    def json_to_pb(json_dict):
+    @classmethod
+    def json_to_pb(cls, json_dict):
         sentences = [AnnotatedSentence.json_to_pb(d) for d in json_dict['sentences']]
         doc = CoreNLP_pb2.Document()
         doc.sentence.extend(sentences)
@@ -193,41 +253,51 @@ class AnnotatedDocument(Document):
 
 # TODO(kelvin): protocol buffers insert undesirable default values. Deal with these somehow.
 
-class AnnotatedSentence(Sentence):
-    def __init__(self, sentence_pb, document=None, json_dict=None):
-        self.pb = sentence_pb
-        self.document = document
-        self._json = json_dict
-
-        if self._json:
-            token_jsons = self._json['tokens']
-        else:
-            token_jsons = [None] * len(self.pb.token)
-
-        self._tokens = [AnnotatedToken(tok_pb, self, tok_json) for tok_pb, tok_json in izip(self.pb.token, token_jsons)]
+class AnnotatedSentence(Sentence, ProtobufBacked):
+    @classmethod
+    def _from_pb(cls, pb):
         # Fill in the text attribute if needed.
-        if len(self.pb.text) == 0:
-            self.pb.text = AnnotatedSentence._reconstruct_text_from_token_pbs(self.pb.token)
-            print(self.pb.text)
+        if len(pb.text) == 0:
+            pb.text = cls._reconstruct_text_from_token_pbs(pb.token)
+            print(pb.text)
+        return cls(pb)
 
-    def to_json(self):
-        if self._json is None:
-            raise AttributeError('No JSON representation.')
-        return self._json
+    @property
+    def document(self):
+        try:
+            return self._document
+        except AttributeError:
+            raise AttributeError("Document has not been set.")
+
+    @document.setter
+    def document(self, val):
+        self._document = val
+
+    @classmethod
+    def _reconstruct_text_from_token_pbs(cls, token_pbs):
+        text = []
+        tok = None
+        for i, tok in enumerate(token_pbs):
+            if i != 0:
+                text.append(tok.before)
+            text.append(tok.word)
+        return ''.join(text)
+
+    def __init__(self, pb):
+        self._tokens = [AnnotatedToken.from_pb(tok_pb) for tok_pb in pb.token]
+
+    @ProtobufBacked.json.setter
+    def json(self, json_dict):
+        self._json = json_dict
+        # propagate JSON to children
+        for tok, tok_json in izip(self._tokens, json_dict['tokens']):
+            tok.json = tok_json
 
     def __getitem__(self, i):
         return self._tokens[i]
 
     def __len__(self):
         return len(self._tokens)
-
-    def __eq__(self, other):
-        if not isinstance(other, AnnotatedSentence):
-            return False
-        return self.pb == other.pb
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __str__(self):
         return self.text.encode('utf-8')
@@ -239,27 +309,12 @@ class AnnotatedSentence(Sentence):
         PREVIEW_LEN = 50
         return "[Sentence: {}]".format(self.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
 
-    @staticmethod
-    def from_json(json_dict):
-        return AnnotatedSentence(AnnotatedSentence.json_to_pb(json_dict), json_dict=json_dict)
-
-    @staticmethod
-    def json_to_pb(json_dict):
+    @classmethod
+    def json_to_pb(cls, json_dict):
         sent = CoreNLP_pb2.Sentence()
         tokens = [AnnotatedToken.json_to_pb(d) for d in json_dict['tokens']]
         sent.token.extend(tokens)
-        sent.text = AnnotatedSentence._reconstruct_text_from_token_pbs(sent.token)
         return sent
-
-    @staticmethod
-    def _reconstruct_text_from_token_pbs(token_pbs):
-        text = []
-        tok = None
-        for i, tok in enumerate(token_pbs):
-            if i != 0:
-                text.append(tok.before)
-            text.append(tok.word)
-        return ''.join(text)
 
     @property
     def paragraph(self):
@@ -279,19 +334,13 @@ class AnnotatedSentence(Sentence):
         """
         Returns the next sentence
         """
-        if self.document is not None:
-            return self.document[self.sentenceIndex + 1]
-        else:
-            raise AttributeError("Document has not been set")
+        return self.document[self.sentenceIndex + 1]
 
     def previous_sentence(self):
         """
         Returns the previous sentence
         """
-        if self.document is not None:
-            return self.document[self.sentenceIndex - 1]
-        else:
-            raise AttributeError("Document has not been set")
+        return self.document[self.sentenceIndex - 1]
 
     def word(self, i):
         return self._tokens[i].word
@@ -410,11 +459,13 @@ class AnnotatedSentence(Sentence):
     #    raise NotImplementedError
 
 
-class AnnotatedToken(Token):
-    def __init__(self, token_pb, sentence=None, json_dict=None):
-        self.pb = token_pb
-        self.sentence = sentence
-        self._json = json_dict
+class AnnotatedToken(Token, ProtobufBacked):
+    @classmethod
+    def _from_pb(cls, pb):
+        return cls(pb)
+
+    def __init__(self, token_pb):
+        pass
 
     def __str__(self):
         return self.pb.word
@@ -422,17 +473,8 @@ class AnnotatedToken(Token):
     def __repr__(self):
         return "[Token: {}]".format(self.pb.word)
 
-    def to_json(self):
-        if self._json is None:
-            raise AttributeError('No JSON representation.')
-        return self._json
-
-    @staticmethod
-    def from_json(json_dict):
-        return AnnotatedToken(AnnotatedToken.json_to_pb(json_dict), json_dict=json_dict)
-
-    @staticmethod
-    def json_to_pb(json_dict):
+    @classmethod
+    def json_to_pb(cls, json_dict):
         tok = CoreNLP_pb2.Token()
 
         def assign_if_present(pb_key, dict_key):
