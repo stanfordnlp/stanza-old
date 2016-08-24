@@ -591,11 +591,9 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
     def roots(self):
         return self.pb.root
 
-    @property
     def parents(self, i):
         return self.inv_graph[i]
 
-    @property
     def children(self, i):
         return self.graph[i]
 
