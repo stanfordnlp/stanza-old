@@ -167,7 +167,7 @@ class ProtobufBacked(object):
     def from_json(cls, json_dict):
         pb = cls.json_to_pb(json_dict)
         obj = cls.from_pb(pb)
-        obj._json = json_dict  # set the JSON
+        obj.json = json_dict  # set the JSON
         return obj
 
 
