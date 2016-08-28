@@ -93,17 +93,17 @@ class TestAnnotatedSentence(object):
     def test_json_to_pb(self, json_dict):
         orig_text = 'Really?'
         sent_dict = json_dict['sentences'][1]
-        sent = AnnotatedSentence.json_to_pb(sent_dict)
+        sent = AnnotatedSentence.from_json(sent_dict)
         assert sent.text == orig_text
-        assert sent.token[1].word == u'?'
+        assert sent[1].word == u'?'
 
 
 class TestAnnotatedDocument(object):
     def test_json_to_pb(self, json_dict):
         orig_text = 'Belgian swimmers beat the United States. Really?'
-        doc = AnnotatedDocument.json_to_pb(json_dict)
+        doc = AnnotatedDocument.from_json(json_dict)
         assert doc.text == orig_text
-        assert doc.sentence[1].text == 'Really?'
+        assert doc[1].text == 'Really?'
 
     def test_json(self, json_dict):
         doc = AnnotatedDocument.from_json(json_dict)
