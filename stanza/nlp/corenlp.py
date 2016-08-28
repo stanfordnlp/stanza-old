@@ -365,7 +365,15 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
 
     @property
     def text(self):
-        return self.pb.text
+        if len(self.pb.text) != 0:
+            return self.pb.text
+
+        text = []
+        for i, tok in enumerate(self):
+            if i != 0:
+                text.append(tok.before)
+            text.append(tok.word)
+        return ''.join(text)
 
     def pos_tag(self, i):
         return self._tokens[i].pos
