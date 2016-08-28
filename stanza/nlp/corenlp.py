@@ -230,7 +230,19 @@ class AnnotatedDocument(Document, ProtobufBacked):
 
     @property
     def text(self):
-        return self.pb.text
+        if len(self.pb.text) != 0:
+            return self.pb.text
+
+        before = lambda sent: sent[0].before
+        after = lambda sent: sent[len(sent) - 1].after
+
+        text = []
+        for i, sent in enumerate(self):
+            if i == 0:
+                text.append(before(sent))
+            text.append(sent.text)
+            text.append(after(sent))
+        return ''.join(text)
 
     def __getattr__(self, attr):
         """
