@@ -286,7 +286,6 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
     @classmethod
     def _reconstruct_text_from_token_pbs(cls, token_pbs):
         text = []
-        tok = None
         for i, tok in enumerate(token_pbs):
             if i != 0:
                 text.append(tok.before)
