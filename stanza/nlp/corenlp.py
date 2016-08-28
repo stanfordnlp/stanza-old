@@ -177,9 +177,6 @@ class AnnotatedDocument(Document, ProtobufBacked):
     """
     @classmethod
     def _from_pb(cls, pb):
-        if len(pb.text) == 0:
-            pb.text = cls._reconstruct_text_from_sentence_pbs(pb.sentence)
-            print(pb.text)
         return cls(pb)
 
     def __init__(self, pb):
@@ -212,7 +209,6 @@ class AnnotatedDocument(Document, ProtobufBacked):
         sentences = [AnnotatedSentence.json_to_pb(d) for d in json_dict['sentences']]
         doc = CoreNLP_pb2.Document()
         doc.sentence.extend(sentences)
-        doc.text = AnnotatedDocument._reconstruct_text_from_sentence_pbs(sentences)
         return doc
 
     @staticmethod
@@ -271,9 +267,6 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
     @classmethod
     def _from_pb(cls, pb):
         # Fill in the text attribute if needed.
-        if len(pb.text) == 0:
-            pb.text = cls._reconstruct_text_from_token_pbs(pb.token)
-            print(pb.text)
         return cls(pb)
 
     def __init__(self, pb):
@@ -328,7 +321,6 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         sent = CoreNLP_pb2.Sentence()
         tokens = [AnnotatedToken.json_to_pb(d) for d in json_dict['tokens']]
         sent.token.extend(tokens)
-        sent.text = AnnotatedSentence._reconstruct_text_from_token_pbs(tokens)
         return sent
 
     @property
