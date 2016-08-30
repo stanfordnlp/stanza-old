@@ -271,7 +271,7 @@ class Vocab(BaseVocab, OrderedDict):
         word2index = {}
         counts = Counter()
         for i, line in enumerate(f):
-            word, count_str = line.strip().split('\t')
+            word, count_str = line.split('\t')
             word2index[word] = i
             counts[word] = float(count_str)
             if i == 0:
