@@ -259,7 +259,7 @@ class Vocab(BaseVocab, OrderedDict):
         """
         for word in self._index2word:
             count = self._counts[word]
-            f.write('{}\t{}\n'.format(word, count))
+            f.write(u'{}\t{}\n'.format(word, count).encode('utf-8'))
 
     @classmethod
     def from_file(cls, f):
@@ -272,6 +272,7 @@ class Vocab(BaseVocab, OrderedDict):
         counts = Counter()
         for i, line in enumerate(f):
             word, count_str = line.split('\t')
+            word = word.decode('utf-8')
             word2index[word] = i
             counts[word] = float(count_str)
             if i == 0:
