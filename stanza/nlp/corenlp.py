@@ -90,7 +90,7 @@ class CoreNLPClient(object):
         :return (AnnotatedDocument): an annotated document
         """
         doc_pb = self.annotate_proto(text, annotators)
-        return AnnotatedDocument(doc_pb)
+        return AnnotatedDocument.from_pb(doc_pb)
 
 
 class ProtobufBacked(object):
@@ -180,6 +180,7 @@ class AnnotatedDocument(Document, ProtobufBacked):
         return cls(pb)
 
     def __init__(self, pb):
+        """Keep this method private."""
         self._sentences = [AnnotatedSentence.from_pb(sent_pb) for sent_pb in pb.sentence]
         for sent in self._sentences:
             sent.document = self
@@ -282,6 +283,7 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         return cls(pb)
 
     def __init__(self, pb):
+        """Keep this method private."""
         self._tokens = [AnnotatedToken.from_pb(tok_pb) for tok_pb in pb.token]
 
     @property
