@@ -207,7 +207,14 @@ class AnnotatedDocument(Document, ProtobufBacked):
 
     @classmethod
     def json_to_pb(cls, json_dict):
-        sentences = [AnnotatedSentence.json_to_pb(d) for d in json_dict['sentences']]
+        sentences = []
+        token_idx = 0
+        for sent_d in json_dict['sentences']:
+            sent_d['tokenOffsetBegin'] = token_idx
+            token_idx += len(sent_d['tokens'])
+            sent_d['tokenOffsetEnd'] = token_idx
+            sent = AnnotatedSentence.json_to_pb(sent_d)
+            sentences.append(sent)
         doc = CoreNLP_pb2.Document()
         doc.sentence.extend(sentences)
         return doc
@@ -332,6 +339,8 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
     @classmethod
     def json_to_pb(cls, json_dict):
         sent = CoreNLP_pb2.Sentence()
+        sent.tokenOffsetBegin = json_dict.get('tokenOffsetBegin', 0)
+        sent.tokenOffsetEnd = json_dict.get('tokenOffsetEnd', len(json_dict['tokens']))
         tokens = [AnnotatedToken.json_to_pb(d) for d in json_dict['tokens']]
         sent.token.extend(tokens)
         return sent
