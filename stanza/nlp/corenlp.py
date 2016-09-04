@@ -1,5 +1,10 @@
+import six
 from abc import abstractmethod
-from itertools import izip
+
+if six.PY2:
+    from itertools import izip
+else:
+    izip = zip
 
 import requests
 from collections import defaultdict
