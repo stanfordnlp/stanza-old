@@ -1,5 +1,5 @@
 import six
-from abc import abstractmethod
+from abc import abstractmethod, abstractclassmethod
 
 if six.PY2:
     from itertools import izip
@@ -11,7 +11,7 @@ from collections import defaultdict
 from google.protobuf.internal.decoder import _DecodeVarint
 
 from . import CoreNLP_pb2
-from stanza.nlp.data import Document, Sentence, Token
+from stanza.nlp.data import Document, Sentence, Token, Entity
 
 __author__ = 'kelvinguu, vzhong, wmonroe4'
 
@@ -97,7 +97,6 @@ class CoreNLPClient(object):
         doc_pb = self.annotate_proto(text, annotators)
         return AnnotatedDocument.from_pb(doc_pb)
 
-
 class ProtobufBacked(object):
     """An object backed by a Protocol buffer.
 
@@ -117,7 +116,7 @@ class ProtobufBacked(object):
         obj._pb = pb
         return obj
 
-    @abstractmethod
+    @abstractclassmethod
     def _from_pb(cls, pb):
         """Instantiate the object from a protocol buffer.
 
@@ -160,7 +159,7 @@ class ProtobufBacked(object):
         """
         return self.json
 
-    @abstractmethod
+    @abstractclassmethod
     def json_to_pb(cls, json_dict):
         """Convert JSON to protocol buffer.
 
@@ -175,7 +174,6 @@ class ProtobufBacked(object):
         obj.json = json_dict  # set the JSON
         return obj
 
-
 class AnnotatedDocument(Document, ProtobufBacked):
     """
     A shim over the protobuffer exposing key methods.
@@ -189,6 +187,24 @@ class AnnotatedDocument(Document, ProtobufBacked):
         self._sentences = [AnnotatedSentence.from_pb(sent_pb) for sent_pb in pb.sentence]
         for sent in self._sentences:
             sent.document = self
+
+        # Get from coref chain
+        self._mentions = []
+        for chain in pb.corefChain:
+            chain_mentions = [AnnotatedEntity(
+                self.sentences[mention_pb.sentenceIndex],
+                (mention_pb.beginIndex, mention_pb.endIndex),
+                mention_pb.headIndex
+                ) for mention_pb in chain.mention]
+
+            # representative mention
+            rep_mention = chain_mentions[chain.representative]
+            for mention in chain_mentions:
+                if mention != rep_mention:
+                    mention._canonical_entity = rep_mention
+            self._mentions += chain_mentions
+        for sentence in self:
+            self._mentions += list(AnnotatedEntity.from_ner(sentence))
 
     def __getitem__(self, i):
         return self._sentences[i]
@@ -262,6 +278,8 @@ class AnnotatedDocument(Document, ProtobufBacked):
         If you are looking for an entry in the protobuf that hasn't been
         defined above, this will access it.
         """
+        if attr == "_pb":
+            raise AttributeError("_pb" is not set)
         return getattr(self.pb, attr)
 
     @property
@@ -275,12 +293,15 @@ class AnnotatedDocument(Document, ProtobufBacked):
     def sentences(self):
         return self._sentences
 
+    @property
+    def mentions(self):
+        """
+        Returns all coreferent mentions (as lists of entities)
+        """
+        return self._mentions
+
     # These are features that are yet to be supported. In the mean time,
     # users can struggle with the protobuf
-    # @property
-    # def coref(self):
-    #     raise NotImplementedError()
-
 
 # TODO(kelvin): finish specifying the Simple interface for AnnotatedSentence
 # http://stanfordnlp.github.io/CoreNLP/simple.html
@@ -466,6 +487,8 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         return (self._tokens[0].character_span[0], self._tokens[-1].character_span[1])
 
     def __getattr__(self, attr):
+        if attr == "_pb":
+            raise AttributeError("_pb" is not set)
         return getattr(self.pb, attr)
 
     # @property
@@ -626,6 +649,95 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
     def children(self, i):
         return self.graph[i]
 
+class AnnotatedEntity(Entity):
+    """
+    A set of entities
+    """
+    def __str__(self):
+        return self._gloss
+
+    def __repr__(self):
+        return "[Entity: {}]".format(self._gloss)
+
+    def __init__(self, sentence, token_span, head_token):
+        """
+        @arg doc: parent document for this coref mention
+        @arg pb: CorefMention protobuf
+        """
+        self._sentence = sentence
+        self._token_span = token_span
+        self._head_token = head_token
+
+        token_pbs = sentence.pb.token[token_span[0]:token_span[1]]
+        self._gloss = AnnotatedEntity._reconstruct_text_from_token_pbs(token_pbs)
+        self._canonical_entity = None
+
+    @classmethod
+    def from_ner(cls, sentence):
+        # Every change in token type, could be a new entity.
+        start_idx, current_ner = 0, 'O'
+        for idx, token in enumerate(sentence):
+            if token.ner != current_ner:
+                if current_ner != 'O':
+                    end_idx = idx
+                    head_idx = end_idx-1
+                    yield AnnotatedEntity(sentence, (start_idx, end_idx), head_idx)
+                current_ner = token.ner
+                start_idx = idx
+        if current_ner != 'O':
+            end_idx = len(sentence)
+            head_idx = end_idx-1
+            yield AnnotatedEntity(sentence, (start_idx, end_idx), head_idx)
+
+    @classmethod
+    def _reconstruct_text_from_token_pbs(cls, token_pbs):
+        text = []
+        for i, tok in enumerate(token_pbs):
+            if i != 0:
+                text.append(tok.before)
+            text.append(tok.word)
+        return ''.join(text)
+
+    @property
+    def sentence(self):
+        """Returns the referring sentence"""
+        return self._sentence
+
+    @property
+    def token_span(self):
+        """Returns the index of the end token."""
+        return self._token_span
+
+    @property
+    def head_token(self):
+        """Returns the index of the end token."""
+        return self._head_token
+
+    @property
+    def character_span(self):
+        """
+        Returns the character span of the token
+        """
+        begin, end = self.token_span
+        return (self.sentence[begin].character_span[0], self.sentence[end].character_span[-1])
+
+    @property
+    def type(self):
+        """Returns the type of the string"""
+        return self.sentence[self.head_token].ner
+
+    @property
+    def gloss(self):
+        """Returns the exact string of the entity"""
+        return self._gloss
+
+    @property
+    def canonical_entity(self):
+        """Returns the exact string of the canonical reference"""
+        if self._canonical_entity:
+            return self._canonical_entity
+        else:
+            return self
 
 # TODO(kelvin): sentence and doc classes that lazily perform annotations
 class LazyDocument(Sentence):
