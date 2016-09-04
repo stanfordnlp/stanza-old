@@ -9,6 +9,7 @@ else:
 import requests
 from collections import defaultdict
 from google.protobuf.internal.decoder import _DecodeVarint
+from stanza.text import to_unicode
 
 from . import CoreNLP_pb2
 from stanza.nlp.data import Document, Sentence, Token, Entity
@@ -40,6 +41,13 @@ class CoreNLPClient(object):
         assert requests.get(self.server).ok, 'Stanford CoreNLP server was not found at location {}'.format(self.server)
 
     def _request(self, text, properties):
+        """Send a request to the CoreNLP server.
+
+        :param (str | unicode) text: raw text for the CoreNLPServer to parse
+        :param (dict) properties: properties that the server expects
+        :return: request result
+        """
+        text = to_unicode(text)  # ensures unicode
         try:
             r = requests.post(self.server, params={'properties': str(properties)}, data=text.encode('utf-8'))
             r.raise_for_status()
