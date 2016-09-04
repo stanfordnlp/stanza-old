@@ -1,0 +1,60 @@
+sudo: required
+dist: trusty
+language: python
+python:
+  - 2.7
+notifications:
+  email: false
+# Setup anaconda
+before_install:
+  - sudo apt-get update
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p ${HOME}/miniconda
+  - export PATH="${HOME}/miniconda/bin:$PATH"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+# Install packages
+install:
+  - which pip
+  - pip --version
+  - which python
+  - python --version
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib scikit-learn
+  - pip install requests nose pypng pyhocon ConfigArgParse mock pytest python-Levenshtein
+  - python -c "import requests"
+  - pip install --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0rc0-cp27-none-linux_x86_64.whl
+  - python -c "import tensorflow"
+  - pip install -e .
+# env:
+#   - THEANO_FLAGS='floatX=float32'
+# Run test
+script: python setup.py test
+# only integrate the master branch
+branches:
+  only:
+    - master
+    - feature
+    - develop
+# web hooks (eg. gitter)
+notifications:
+  slack:
+      rooms:
+      - stanfordnlp:aAWRsBOxoolXY8vxXEJ8NkTV#stanza
+      on_success: never
+      on_failure: always
+
+  # webhooks:
+  #   on_success: change  # options: [always|never|change] default: always
+  #   on_failure: always  # options: [always|never|change] default: always
+  #   on_start: false     # default: false
+  email:
+    on_success: never # [always|never|change] # default: change
+    on_failure: change #[always|never|change] # default: always

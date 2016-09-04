@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Run all tests using nose.
+# Dependencies:
+#  $ pip install nose nose-exclude coverage
+# Make sure you have setup.cfg copied over, or this won't by default run
+# coverage or doctest.
+
+nosetests
