@@ -1,9 +1,18 @@
 import six
-from abc import abstractmethod, abstractclassmethod
+from abc import abstractmethod
 
 if six.PY2:
     from itertools import izip
+
+    class abstractclassmethod(classmethod):
+
+        __isabstractmethod__ = True
+
+        def __init__(self, callable):
+            callable.__isabstractmethod__ = True
+            super(abstractclassmethod, self).__init__(callable)
 else:
+    from abc import abstractclassmethod
     izip = zip
 
 import requests
