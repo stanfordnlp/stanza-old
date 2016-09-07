@@ -719,7 +719,7 @@ class AnnotatedEntity(Entity):
         Returns the character span of the token
         """
         begin, end = self.token_span
-        return (self.sentence[begin].character_span[0], self.sentence[end].character_span[-1])
+        return (self.sentence[begin].character_span[0], self.sentence[end-1].character_span[-1])
 
     @property
     def type(self):
