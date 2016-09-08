@@ -4,7 +4,6 @@ from abc import abstractmethod
 if six.PY2:
     from itertools import izip
 else:
-    from abc import abstractclassmethod
     izip = zip
 
 import requests
@@ -125,7 +124,7 @@ class ProtobufBacked(object):
         obj._pb = pb
         return obj
 
-    @abstractclassmethod
+    @abstractmethod
     def _from_pb(cls, pb):
         """Instantiate the object from a protocol buffer.
 
@@ -168,7 +167,7 @@ class ProtobufBacked(object):
         """
         return self.json
 
-    @abstractclassmethod
+    @abstractmethod
     def json_to_pb(cls, json_dict):
         """Convert JSON to protocol buffer.
 
