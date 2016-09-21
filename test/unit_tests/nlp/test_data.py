@@ -1,6 +1,11 @@
+#
+# pylint: disable=no-self-use, redefined-outer-name
+
 import copy
 
 import pytest
+
+import stanza.nlp.CoreNLP_pb2 as proto
 
 from stanza.nlp.corenlp import AnnotatedDocument, AnnotatedToken, AnnotatedSentence
 
@@ -77,6 +82,21 @@ def json_dict():
                                          u'word': u'?'}]}]}
 
 
+@pytest.fixture
+def document_pb():
+    """What CoreNLP would return for:
+       "Barack Hussein Obama is an American politician who is the 44th
+       and current President of the United States. He is the first
+       African American to hold the office and the first president born
+       outside the continental United States. Born in Honolulu, Hawaii,
+       Obama is a graduate of Columbia University and Harvard Law
+       School, where he was president of the Harvard Law Review."
+    """
+    doc = proto.Document()
+    with open("test/unit_tests/nlp/document.pb", "rb") as f:
+        doc.ParseFromString(f.read())
+    return doc
+
 class TestAnnotatedToken(object):
     def test_json_to_pb(self, json_dict):
         token_dict = json_dict['sentences'][0]['tokens'][0]
@@ -88,6 +108,17 @@ class TestAnnotatedToken(object):
         assert token.originalText == u'Belgian'
         assert token.word == u'Belgian'
 
+    def test_parse_pb(self, document_pb):
+        token_pb = document_pb.sentence[1].token[3]
+        token = AnnotatedToken.from_pb(token_pb)
+        assert token.after == u' '
+        assert token.before == u' '
+        assert token.character_span == (117, 122)
+        assert token.originalText == u'first'
+        assert token.word == u'first'
+        assert token.lemma == u'first'
+        assert token.ner == u'ORDINAL'
+        assert token.pos == u'JJ'
 
 class TestAnnotatedSentence(object):
     def test_json_to_pb(self, json_dict):
@@ -97,6 +128,22 @@ class TestAnnotatedSentence(object):
         assert sent.text == orig_text
         assert sent[1].word == u'?'
 
+    def test_parse_pb(self, document_pb):
+        sentence_pb = document_pb.sentence[0]
+        sentence = AnnotatedSentence.from_pb(sentence_pb)
+        assert sentence.text == u"Barack Hussein Obama is an American politician who is the 44th and current President of the United States."
+        assert len(sentence) == 19
+        assert sentence[1].word == "Hussein"
+        assert sentence[1].ner == "PERSON"
+
+    def test_depparse(self, document_pb):
+        sentence_pb = document_pb.sentence[0]
+        sentence = AnnotatedSentence.from_pb(sentence_pb)
+        dp = sentence.depparse
+        assert dp.roots == [6] # politician
+        assert (2, 'nsubj') in dp.children(6) # Obama is child of politician
+        assert (3, 'cop') in dp.children(6) # 'is' is ia copula
+        assert (0, 'compound') in dp.children(2) # 'Barack' is part of the compount that is Obama.
 
 class TestAnnotatedDocument(object):
     def test_json_to_pb(self, json_dict):
@@ -135,4 +182,17 @@ class TestAnnotatedDocument(object):
         assert doc[0][1].word == u'swimmers'
         assert doc[0][2].character_span == (17, 21)
         assert doc[0].document == doc
+
+    def test_parse_pb(self, document_pb):
+        document = AnnotatedDocument.from_pb(document_pb)
+        assert document.text == u"Barack Hussein Obama is an American politician who is the 44th and current President of the United States. He is the first African American to hold the office and the first president born outside the continental United States. Born in Honolulu, Hawaii, Obama is a graduate of Columbia University and Harvard Law School, where he was president of the Harvard Law Review."
+        assert len(document) == 3
+        assert document[0][1].word == "Hussein"
+        assert document[0][1].ner == "PERSON"
+
+    def test_mentions(self, document_pb):
+        document = AnnotatedDocument.from_pb(document_pb)
+        mentions = document.mentions
+        assert len(mentions) == 19
+
 
