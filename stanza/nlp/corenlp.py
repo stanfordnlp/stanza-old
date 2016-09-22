@@ -196,8 +196,12 @@ class AnnotatedDocument(Document, ProtobufBacked):
         for sent in self._sentences:
             sent.document = self
 
+        self._mentions = self.__construct_mentions(pb)
+
+    def __construct_mentions(self, pb):
+        mentions = []
+
         # Get from coref chain
-        self._mentions = []
         for chain in pb.corefChain:
             chain_mentions = [AnnotatedEntity(
                 self.sentences[mention_pb.sentenceIndex],
@@ -210,9 +214,16 @@ class AnnotatedDocument(Document, ProtobufBacked):
             for mention in chain_mentions:
                 if mention != rep_mention:
                     mention._canonical_entity = rep_mention
-            self._mentions += chain_mentions
+            mentions += chain_mentions
+
+        # Add from NER sequence if you couldn't find it in the coref
+        # chain.
+        # TODO: should I also get contained mentions?
         for sentence in self:
-            self._mentions += list(AnnotatedEntity.from_ner(sentence))
+            for mention in AnnotatedEntity.from_ner(sentence):
+                if not any(mention_.character_span == mention.character_span for mention_ in mentions):
+                    mentions.append(mention)
+        return mentions
 
     def __getitem__(self, i):
         return self._sentences[i]
@@ -624,6 +635,8 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
         return cls(pb)
 
     def __init__(self, pb):
+        self._pb = pb
+        self._roots = [r-1 for r in pb.root] # Dependency parses are +1 indexed.
         self.graph, self.inv_graph = AnnotatedDependencyParseTree.parse_graph(pb.edge)
 
     def json_to_pb(cls, json_dict):
@@ -642,14 +655,14 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
         graph = defaultdict(list)
         inv_graph = defaultdict(list)
         for edge in edges:
-            graph[edge.source].append((edge.target, edge.dep))
-            inv_graph[edge.target].append((edge.source, edge.dep))
+            graph[edge.source-1].append((edge.target-1, edge.dep))
+            inv_graph[edge.target-1].append((edge.source-1, edge.dep))
 
         return graph, inv_graph
 
     @property
     def roots(self):
-        return self.pb.root
+        return self._roots
 
     def parents(self, i):
         return self.inv_graph[i]
