@@ -201,28 +201,34 @@ class AnnotatedDocument(Document, ProtobufBacked):
     def __construct_mentions(self, pb):
         mentions = []
 
+        # Get from NER sequence because they tend to be nicer for name
+        # mentions. And people only care about name mentions.
+        for sentence in self:
+            for mention in AnnotatedEntity.from_ner(sentence):
+                mentions.append(mention)
+
         # Get from coref chain
         for chain in pb.corefChain:
-            chain_mentions = [AnnotatedEntity(
-                self.sentences[mention_pb.sentenceIndex],
-                (mention_pb.beginIndex, mention_pb.endIndex),
-                mention_pb.headIndex
-                ) for mention_pb in chain.mention]
+            chain_mentions = []
+            for mention_pb in chain.mention:
+                # If this mention refers to a mention that already
+                # exists, use the NER mention instead.
+                try:
+                    entity = next(mention for mention in mentions if mention.sentence.sentenceIndex == mention_pb.sentenceIndex and mention.head_token == mention_pb.headIndex )
+                except StopIteration:
+                    entity = AnnotatedEntity(
+                        self.sentences[mention_pb.sentenceIndex],
+                        (mention_pb.beginIndex, mention_pb.endIndex),
+                        mention_pb.headIndex
+                        )
+                    mentions.append(entity)
+                chain_mentions.append(entity)
 
             # representative mention
             rep_mention = chain_mentions[chain.representative]
             for mention in chain_mentions:
                 if mention != rep_mention:
                     mention._canonical_entity = rep_mention
-            mentions += chain_mentions
-
-        # Add from NER sequence if you couldn't find it in the coref
-        # chain.
-        # TODO: should I also get contained mentions?
-        for sentence in self:
-            for mention in AnnotatedEntity.from_ner(sentence):
-                if not any(mention_.character_span == mention.character_span for mention_ in mentions):
-                    mentions.append(mention)
         return mentions
 
     def __getitem__(self, i):
@@ -641,6 +647,9 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
 
     def json_to_pb(cls, json_dict):
         raise NotImplementedError
+
+    def __str__(self):
+        return str(self.graph)
 
     @property
     def sentence(self):

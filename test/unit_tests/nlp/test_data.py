@@ -193,6 +193,6 @@ class TestAnnotatedDocument(object):
     def test_mentions(self, document_pb):
         document = AnnotatedDocument.from_pb(document_pb)
         mentions = document.mentions
-        assert len(mentions) == 19
+        assert len(mentions) == 17
 
 
