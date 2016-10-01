@@ -145,6 +145,20 @@ class TestAnnotatedSentence(object):
         assert (3, 'cop') in dp.children(6) # 'is' is ia copula
         assert (0, 'compound') in dp.children(2) # 'Barack' is part of the compount that is Obama.
 
+    def test_depparse_json(self, document_pb):
+        sentence_pb = document_pb.sentence[0]
+        sentence = AnnotatedSentence.from_pb(sentence_pb)
+        dp = sentence.depparse
+        edges = dp.to_json()
+        # politician is root
+        assert any((edge['dep'] == 'root' and edge['dependent'] == 7 and edge['dependentgloss'] == 'politician') for edge in edges)
+        # Obama is child of politician
+        assert any((edge['governer'] == 7 and edge['dep'] == 'nsubj' and edge['dependent'] == 3 and edge['dependentgloss'] == 'Obama') for edge in edges)
+        # 'is' is ia copula
+        assert any((edge['governer'] == 7 and edge['dep'] == 'cop' and edge['dependent'] == 4 and edge['dependentgloss'] == 'is') for edge in edges)
+        # 'Barack' is part of the compount that is Obama.
+        assert any((edge['governer'] == 3 and edge['dep'] == 'compound' and edge['dependent'] == 1 and edge['dependentgloss'] == 'Barack') for edge in edges)
+
 class TestAnnotatedDocument(object):
     def test_json_to_pb(self, json_dict):
         orig_text = 'Belgian swimmers beat the United States. Really?'

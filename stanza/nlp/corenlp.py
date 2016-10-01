@@ -642,7 +642,7 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
 
     def __init__(self, pb):
         self._pb = pb
-        self._roots = [r-1 for r in pb.root] # Dependency parses are +1 indexed.
+        self._roots = [r-1 for r in pb.root] # Dependency parses are +1 indexed in the pb.
         self.graph, self.inv_graph = AnnotatedDependencyParseTree.parse_graph(pb.edge)
 
     def json_to_pb(cls, json_dict):
@@ -650,6 +650,36 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
 
     def __str__(self):
         return str(self.graph)
+
+    def to_json(self):
+        """
+        Represented as a list of edges:
+            dependent: index of child
+            dep: dependency label
+            governer: index of parent
+            dependentgloss: gloss of parent
+            governergloss: gloss of parent
+        """
+        edges = []
+        for root in self.roots:
+            edges.append({
+                'governer': 0,
+                'dep': "root",
+                'dependent': root+1,
+                'governergloss': "root",
+                'dependentgloss': self.sentence[root].word,
+                })
+
+        for gov, dependents in self.graph.items():
+            for dependent, dep in dependents:
+                edges.append({
+                    'governer': gov+1,
+                    'dep': dep,
+                    'dependent': dependent+1,
+                    'governergloss': self.sentence[gov].word,
+                    'dependentgloss': self.sentence[dependent].word,
+                    })
+        return edges
 
     @property
     def sentence(self):
