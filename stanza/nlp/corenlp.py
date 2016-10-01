@@ -23,6 +23,12 @@ class AnnotationException(Exception):
     """
     pass
 
+class TimeoutException(AnnotationException):
+    """
+    Exception raised when the CoreNLP server timed out.
+    """
+    pass
+
 
 class CoreNLPClient(object):
     """
@@ -53,7 +59,10 @@ class CoreNLPClient(object):
             r.raise_for_status()
             return r
         except requests.HTTPError:
-            raise AnnotationException(r.text)
+            if r.text == "CoreNLP request timed out. Your document may be too long.":
+                raise TimeoutException(r.text)
+            else:
+                raise AnnotationException(r.text)
 
     def annotate_json(self, text, annotators=None):
         """Return a JSON dict from the CoreNLP server, containing annotations of the text.
