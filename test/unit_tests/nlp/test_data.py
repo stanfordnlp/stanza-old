@@ -139,7 +139,7 @@ class TestAnnotatedSentence(object):
     def test_depparse(self, document_pb):
         sentence_pb = document_pb.sentence[0]
         sentence = AnnotatedSentence.from_pb(sentence_pb)
-        dp = sentence.depparse
+        dp = sentence.depparse()
         assert dp.roots == [6] # politician
         assert (2, 'nsubj') in dp.children(6) # Obama is child of politician
         assert (3, 'cop') in dp.children(6) # 'is' is ia copula
@@ -148,7 +148,7 @@ class TestAnnotatedSentence(object):
     def test_depparse_json(self, document_pb):
         sentence_pb = document_pb.sentence[0]
         sentence = AnnotatedSentence.from_pb(sentence_pb)
-        dp = sentence.depparse
+        dp = sentence.depparse()
         edges = dp.to_json()
         # politician is root
         assert any((edge['dep'] == 'root' and edge['dependent'] == 7 and edge['dependentgloss'] == 'politician') for edge in edges)

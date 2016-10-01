@@ -477,7 +477,6 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
     def token(self, i):
         return self._tokens[i]
 
-    @property
     def depparse(self, mode="enhancedPlusPlus"):
         """
         Retrieves the appropriate dependency parse.
