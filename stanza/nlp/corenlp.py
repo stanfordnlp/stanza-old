@@ -387,7 +387,11 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         return len(self._tokens)
 
     def __str__(self):
-        return self.text.encode('utf-8')
+        if six.PY2:
+            return self.text.encode('utf-8')
+        else:
+            # encode in py3 returns a byte string.
+            return self.text
 
     def __unicode__(self):
         return self.text
