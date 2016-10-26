@@ -178,11 +178,6 @@ class ProtobufBacked(object):
         except AttributeError:
             raise AttributeError('No JSON representation available.')
 
-    # WARN(chaganty): Is this even needed?
-    # @json.setter
-    # def json(self, json_dict):
-    #     json2pb(self._pb, json_dict)
-
     def to_json(self):
         """Same as the json property.
 
@@ -190,20 +185,8 @@ class ProtobufBacked(object):
         """
         return self.json
 
-    # @abstractmethod
-    # def json_to_pb(cls, json_dict):
-    #     """Convert JSON to protocol buffer.
-    #     Note: This should be a classmethod.
-    #     """
-    #     # WARN(chaganty): deprecated.
-    #     pass
-
     @classmethod
     def from_json(cls, json_dict):
-        #pb = cls.json_to_pb(json_dict)
-        #obj = cls.from_pb(pb)
-        #obj._json = json_dict  # set the JSON
-        #return obj
         pb = cls._get_pb_class()()
         json2pb(pb, json_dict)
         return cls.from_pb(pb)
@@ -275,27 +258,6 @@ class AnnotatedDocument(Document, ProtobufBacked):
     def __repr__(self):
         PREVIEW_LEN = 50
         return "[Document: {}]".format(self.pb.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
-
-   # @ProtobufBacked.json.setter
-   # def json(self, json_dict):
-   #     self._json = json_dict
-   #     # propagate JSON to children
-   #     for sent, sent_json in izip(self._sentences, json_dict['sentences']):
-   #         sent.json = sent_json
-
-    # @classmethod
-    # def json_to_pb(cls, json_dict):
-    #     sentences = []
-    #     token_idx = 0
-    #     for sent_d in json_dict['sentences']:
-    #         sent_d['tokenOffsetBegin'] = token_idx
-    #         token_idx += len(sent_d['tokens'])
-    #         sent_d['tokenOffsetEnd'] = token_idx
-    #         sent = AnnotatedSentence.json_to_pb(sent_d)
-    #         sentences.append(sent)
-    #     doc = CoreNLP_pb2.Document()
-    #     doc.sentence.extend(sentences)
-    #     return doc
 
     @staticmethod
     def _reconstruct_text_from_sentence_pbs(sentence_pbs):
@@ -381,6 +343,14 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         """Keep this method private."""
         self._tokens = [AnnotatedToken.from_pb(tok_pb) for tok_pb in pb.token]
 
+    @classmethod
+    def from_tokens(cls, toks):
+        """
+        A helper method that allows you to construct an AnnotatedSentence with just token information:
+            - toks
+        """
+        pass
+
     @property
     def document(self):
         try:
@@ -427,15 +397,6 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
     def __repr__(self):
         PREVIEW_LEN = 50
         return "[Sentence: {}]".format(self.text[:PREVIEW_LEN] + ("..." if len(self.pb.text) > PREVIEW_LEN else ""))
-
-    @classmethod
-    def json_to_pb(cls, json_dict):
-        sent = CoreNLP_pb2.Sentence()
-        sent.tokenOffsetBegin = json_dict.get('tokenOffsetBegin', 0)
-        sent.tokenOffsetEnd = json_dict.get('tokenOffsetEnd', len(json_dict['tokens']))
-        tokens = [AnnotatedToken.json_to_pb(d) for d in json_dict['tokens']]
-        sent.token.extend(tokens)
-        return sent
 
     @property
     def paragraph(self):
@@ -607,32 +568,6 @@ class AnnotatedToken(Token, ProtobufBacked):
     def __repr__(self):
         return "[Token: {}]".format(self.pb.word)
 
-    #@classmethod
-    #def json_to_pb(cls, json_dict):
-    #    tok = CoreNLP_pb2.Token()
-
-    #    def assign_if_present(pb_key, dict_key):
-    #        if dict_key in json_dict:
-    #            setattr(tok, pb_key, json_dict[dict_key])
-
-    #    mapping = {
-    #        'after': 'after',
-    #        'before': 'before',
-    #        'beginChar': 'characterOffsetBegin',
-    #        'endChar': 'characterOffsetEnd',
-    #        'originalText': 'originalText',
-    #        'word': 'word',
-    #        'pos': 'pos',
-    #        'ner': 'ner',
-    #        'lemma': 'lemma',
-    #        'wikipediaEntity': 'entitylink',
-    #    }
-
-    #    for pb_key, dict_key in mapping.items():
-    #        assign_if_present(pb_key, dict_key)
-
-    #    return tok
-
     @property
     def word(self):
         return self.pb.word
@@ -693,9 +628,6 @@ class AnnotatedDependencyParseTree(ProtobufBacked):
         self._pb = pb
         self._roots = [r-1 for r in pb.root] # Dependency parses are +1 indexed in the pb.
         self.graph, self.inv_graph = AnnotatedDependencyParseTree.parse_graph(pb.edge)
-
-    #def json_to_pb(cls, json_dict):
-    #    raise NotImplementedError
 
     def __str__(self):
         return str(self.graph)
