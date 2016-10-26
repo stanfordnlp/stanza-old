@@ -18,6 +18,7 @@ class Token(object):
     def word(self):
         pass
 
+
 class Entity(object):
     """An 'entity' in a information extraction sense. Each entity has
     a type, a token sequence in a sentence and an optional canonical
@@ -57,4 +58,3 @@ class Entity(object):
     def canonical_entity(self):
         """Returns the exact string of the canonical reference"""
         pass
-
