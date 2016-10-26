@@ -344,12 +344,52 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         self._tokens = [AnnotatedToken.from_pb(tok_pb) for tok_pb in pb.token]
 
     @classmethod
-    def from_tokens(cls, toks):
+    def from_tokens(cls, text, toks):
         """
         A helper method that allows you to construct an AnnotatedSentence with just token information:
-            - toks
+        :param (str) text -- full text of the sentence.
+        :param (list[str]) toks -- tokens
         """
-        pass
+        sentence_pb = CoreNLP_pb2.Sentence()
+        sentence_pb.characterOffsetBegin = 0
+        sentence_pb.characterOffsetEnd = len(text)
+        sentence_pb.sentenceIndex = 0
+        sentence_pb.tokenOffsetBegin = 0
+        sentence_pb.tokenOffsetEnd = 7
+
+        # Track progress in sentence and tokens.
+        char_idx = 0
+        tok_idx = 0
+
+        buf = ""
+        token_pb = None
+        while char_idx < len(text):
+            tok = toks[tok_idx]
+            # Scan to the beginning of the token.
+            if text[char_idx] != tok[0]:
+                buf += text[char_idx]
+                char_idx += 1
+            # Aha! we have found the token. Assert that they match.
+            else:
+                assert text[char_idx:char_idx+len(tok)] == tok, "text did not match a token"
+                # Create a new Token from this text.
+                if token_pb: token_pb.after = buf
+                token_pb = sentence_pb.token.add()
+                token_pb.before = buf
+
+                token_pb.beginChar = char_idx
+                token_pb.endChar = char_idx + len(tok)
+                # TODO(chaganty): potentially handle -LRB-?
+                token_pb.value = tok
+                token_pb.word = tok
+                token_pb.originalText = text[char_idx:char_idx+len(tok)]
+
+                buf = ""
+                char_idx += len(tok)
+                tok_idx += 1
+        if token_pb: token_pb.after = buf
+        assert tok_idx == len(toks), "text does not match all tokens"
+        return AnnotatedSentence.from_pb(sentence_pb)
 
     @property
     def document(self):

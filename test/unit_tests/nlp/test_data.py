@@ -93,6 +93,14 @@ class TestAnnotatedSentence(object):
         # 'Barack' is part of the compount that is Obama.
         assert any((edge['governer'] == 3 and edge['dep'] == 'compound' and edge['dependent'] == 1 and edge['dependentgloss'] == 'Barack') for edge in edges)
 
+    def test_from_tokens(self):
+        text = "This is a test."
+        tokens = "This is a test .".split()
+        sentence = AnnotatedSentence.from_tokens(text, tokens)
+        assert sentence.text == text
+        assert len(sentence) == 5
+        assert sentence[1].word == "is"
+
 class TestAnnotatedDocument(object):
     #def test_json_to_pb(self, json_dict):
     #    orig_text = 'Belgian swimmers beat the United States. Really?'
