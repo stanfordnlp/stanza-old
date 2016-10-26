@@ -355,7 +355,7 @@ class AnnotatedSentence(Sentence, ProtobufBacked):
         sentence_pb.characterOffsetEnd = len(text)
         sentence_pb.sentenceIndex = 0
         sentence_pb.tokenOffsetBegin = 0
-        sentence_pb.tokenOffsetEnd = 7
+        sentence_pb.tokenOffsetEnd = len(toks)
 
         # Track progress in sentence and tokens.
         char_idx = 0
