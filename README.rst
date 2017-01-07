@@ -29,6 +29,7 @@ To use the package, import it in your python code. An example would be:
 To use the Python client for the CoreNLP server, first launch your server, then, in your Python program:
 
 ::
+
     from stanza.nlp.corenlp import CoreNLPClient
     client = CoreNLPClient(server='http://localhost:9000', default_annotators=['ssplit', 'tokenize', 'lemma', 'pos', 'ner'])
     annotated = client.annotate('This is an example document. Here is a second sentence')
