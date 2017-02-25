@@ -89,7 +89,7 @@ def bleu(eval_data, predictions, scores='ignored', learner='ignored'):
     '''
     ref_groups = ([inst.output.split()]
                   if isinstance(inst.output, basestring) else
-                  [r.split() for r in inst.output]
+                  [_maybe_tokenize(r) for r in inst.output]
                   for inst in eval_data)
     return [corpus_bleu(ref_groups, [p.split() for p in predictions])]
 
@@ -169,7 +169,7 @@ def token_perplexity_macro(eval_data, predictions, scores, learner='ignored'):
     ... # per-token perplexities: [1, 4, 8]
     [1.0, 4.0, 8.0]
     '''
-    lens = np.array([len(inst.output.split()) + 1 for inst in eval_data])
+    lens = np.array([len(_maybe_tokenize(inst.output)) + 1 for inst in eval_data])
     return np.exp(-np.array(scores) / lens).tolist()
 
 
@@ -190,8 +190,15 @@ def token_perplexity_micro(eval_data, predictions, scores, learner='ignored'):
     ... # micro-average: gmean([1, 4, 8, 8])
     [4.0]
     '''
-    lens = np.array([len(inst.output.split()) + 1 for inst in eval_data])
+    lens = np.array([len(_maybe_tokenize(inst.output)) + 1 for inst in eval_data])
     return [np.exp(np.average(-np.array(scores) / lens, weights=lens))]
+
+
+def _maybe_tokenize(seq):
+    if isinstance(seq, basestring):
+        return seq.split()
+    else:
+        return seq
 
 
 def aic(eval_data, predictions, scores, learner):
