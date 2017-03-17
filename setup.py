@@ -73,7 +73,7 @@ class AllTest(Command):
 
 setup(
     name='stanza',
-    version='0.1',
+    version='0.2',
     packages=['stanza', 'stanza.text', 'stanza.monitoring', 'stanza.util'],
     url='https://github.com/stanfordnlp/stanza',
     license='MIT',
