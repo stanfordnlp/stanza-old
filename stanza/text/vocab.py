@@ -423,7 +423,7 @@ class GloveVocab(EmbeddedVocab):
             seen = []
             with zf.open(name) as f:
                 for line in f:
-                    toks = line.rstrip().split(' ')
+                    toks = str(line).rstrip().split(' ')
                     word = toks[0]
                     if word in self:
                         seen += [word]
