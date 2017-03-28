@@ -411,7 +411,7 @@ class GloveVocab(EmbeddedVocab):
         E = rand((len(self), self.n_dim)).astype(dtype)
         n_dim = str(self.n_dim)
 
-        with zipfile.ZipFile(open(zip_file)) as zf:
+        with zipfile.ZipFile(zip_file) as zf:
             # should be only 1 txt file
             names = [info.filename for info in zf.infolist() if
                      info.filename.endswith('.txt') and n_dim in info.filename]
