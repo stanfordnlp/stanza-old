@@ -26,7 +26,7 @@ To use the package, import it in your python code. An example would be:
     from stanza.text.vocab import Vocab
     v = Vocab('UNK')
     
-To use the Python client for the CoreNLP server, first launch your server, then, in your Python program:
+To use the Python client for the CoreNLP server, [first launch your CoreNLP Java server](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html). Then, in your Python program:
 
 ::
 
