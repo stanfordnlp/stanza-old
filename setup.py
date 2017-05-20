@@ -1,6 +1,6 @@
 __author__ = 'victor, wmonroe4, kelvinguu'
 
-from distutils.core import setup, Command
+from setuptools import setup, Command, find_packages
 
 
 class UnitTest2(Command):
@@ -73,8 +73,8 @@ class AllTest(Command):
 
 setup(
     name='stanza',
-    version='0.2',
-    packages=['stanza', 'stanza.text', 'stanza.monitoring', 'stanza.util'],
+    version='0.3',
+    packages=find_packages(exclude=['docs', 'test']),
     url='https://github.com/stanfordnlp/stanza',
     license='MIT',
     author='Stanford NLP',
