@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from collections import defaultdict
 
+import logging
+import time
 import six
 import requests
 from google.protobuf.internal.decoder import _DecodeVarint
@@ -46,7 +48,7 @@ class CoreNLPClient(object):
         self.default_annotators = default_annotators
         assert requests.get(self.server).ok, 'Stanford CoreNLP server was not found at location {}'.format(self.server)
 
-    def _request(self, text, properties):
+    def _request(self, text, properties, retries=0):
         """Send a request to the CoreNLP server.
 
         :param (str | unicode) text: raw text for the CoreNLPServer to parse
@@ -58,6 +60,16 @@ class CoreNLPClient(object):
             r = requests.post(self.server, params={'properties': str(properties)}, data=text.encode('utf-8'))
             r.raise_for_status()
             return r
+        except requests.ConnectionError as e:
+            if retries > 5:
+                logging.critical('Max retries exceeded!')
+                raise e
+            else:
+                logging.critical(repr(e))
+                logging.critical("It seems like we've temporarily ran out of ports. Taking a 30s break...")
+                time.sleep(30)
+                logging.critical("Retrying...")
+                return self._request(text, properties, retries=retries+1)
         except requests.HTTPError:
             if r.text == "CoreNLP request timed out. Your document may be too long.":
                 raise TimeoutException(r.text)
