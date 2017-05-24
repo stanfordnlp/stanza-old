@@ -152,8 +152,13 @@ def bind_theano(device=None, max_usage=USAGE_THRESHOLD, verbose=True):
     if device is None:
         device = best_gpu(max_usage, verbose=verbose)
     if device and device != 'cpu':
-        import theano.sandbox.cuda
-        theano.sandbox.cuda.use(device)
+        try:
+            import theano.sandbox.cuda
+            theano.sandbox.cuda.use(device)
+        except ImportError:
+            import theano.gpuarray
+            theano.gpuarray.use(device.replace('gpu', 'cuda'))
+
 
 
 __all__ = [
