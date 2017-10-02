@@ -104,7 +104,7 @@ class Embeddings(Mapping):
             self.lshf = self._init_lsh_forest()
 
         # TODO(kelvin): make this inner product score, to be consistent with k_nearest
-        distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
+        distances, neighbors = self.lshf.kneighbors([vec], n_neighbors=k, return_distance=True)
         scores = np.subtract(1, distances)
         nbr_score_pairs = self._word_to_score(np.squeeze(neighbors), np.squeeze(scores))
 
