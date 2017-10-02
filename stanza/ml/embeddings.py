@@ -1,12 +1,14 @@
-__author__ = 'kelvinguu'
-
+from collections import Mapping
 from contextlib import contextmanager
 import logging
 import numpy as np
 from stanza.text import Vocab
 
 
-class Embeddings(object):
+__author__ = 'kelvinguu'
+
+
+class Embeddings(Mapping):
     """A map from strings to vectors.
 
     Vectors are stored as a numpy array.
@@ -30,6 +32,12 @@ class Embeddings(object):
         idx = self.vocab.word2index(w)
         return self.array[idx]
 
+    def __iter__(self):
+        return iter(self.vocab)
+
+    def __len__(self):
+        return len(self.vocab)
+
     def __contains__(self, item):
         return item in self.vocab
 
@@ -47,24 +55,24 @@ class Embeddings(object):
         :return (list[tuple[str, float]]): a map of embeddings to inner products
         """
         products = self.array.dot(vec)
-        return self.score_map(np.arange(len(products)), products)
+        return self._word_to_score(np.arange(len(products)), products)
 
-    def score_map(self, ids, scores):
+    def _word_to_score(self, ids, scores):
         """Return a map from each word to its score.
 
         :param (np.array) ids: a vector of word ids
         :param (np.array) scores: a vector of scores
 
-        :return (dict[str, float]): a map from each word to its score
+        :return (dict[unicode, float]): a map from each word (unicode) to its score (float)
         """
         # should be 1-D vectors
         assert len(ids.shape) == 1
         assert ids.shape == scores.shape
 
-        score_map = {}
+        w2s = {}
         for i in range(len(ids)):
-            score_map[self.vocab.index2word(ids[i])] = scores[i]
-        return score_map
+            w2s[self.vocab.index2word(ids[i])] = scores[i]
+        return w2s
 
     def k_nearest(self, vec, k):
         """Get the k nearest neighbors of a vector (in terms of highest inner products).
@@ -98,7 +106,7 @@ class Embeddings(object):
         # TODO(kelvin): make this inner product score, to be consistent with k_nearest
         distances, neighbors = self.lshf.kneighbors(vec, n_neighbors=k, return_distance=True)
         scores = np.subtract(1, distances)
-        nbr_score_pairs = self.score_map(np.squeeze(neighbors), np.squeeze(scores))
+        nbr_score_pairs = self._word_to_score(np.squeeze(neighbors), np.squeeze(scores))
 
         return sorted(nbr_score_pairs.items(), key=lambda x: x[1], reverse=True)
 
@@ -168,10 +176,10 @@ class Embeddings(object):
             self.to_files(array_file, vocab_file)
 
     @classmethod
-    def from_file_path(self, path_prefix):
+    def from_file_path(cls, path_prefix):
         """Load the embedding matrix and the vocab from <path_prefix>.npy and <path_prefix>.vocab.
 
         :param (str) path_prefix: path prefix of the saved files
         """
-        with self._path_prefix_to_files(path_prefix, 'r') as (array_file, vocab_file):
-            return self.from_files(array_file, vocab_file)
+        with cls._path_prefix_to_files(path_prefix, 'r') as (array_file, vocab_file):
+            return cls.from_files(array_file, vocab_file)

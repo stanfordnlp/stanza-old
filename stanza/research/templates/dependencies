@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+echo 'Installing dependencies...'
+pip install ConfigArgParse 'pyhocon==0.3.18' pypng 'Protobuf>=3.0.0b2' python-Levenshtein
+
+if [ ! -e tensorflow ]; then
+    echo 'Checking for tensorboard protos...'
+    ( python -c 'import tensorflow.core.util.event_pb2' >/dev/null 2>&1 ) || (
+        echo "It looks like you don't have TensorFlow installed, so I'm putting a"
+        echo "symlink at ./tensorflow/ to just the bare minimum you need. If you"
+        echo "decide to install Tensorflow in the future, you can remove it."
+        ln -s third-party/tensorflow tensorflow
+    )
+fi
+
+# TODO:
+# pip/conda install python libraries
+# download datasets
+
+echo 'Installing testing modules (optional)...'
+pip install nose nose-exclude coverage mock

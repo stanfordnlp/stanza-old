@@ -259,7 +259,7 @@ class Vocab(BaseVocab, OrderedDict):
         """
         for word in self._index2word:
             count = self._counts[word]
-            f.write('{}\t{}\n'.format(word, count))
+            f.write(u'{}\t{}\n'.format(word, count).encode('utf-8'))
 
     @classmethod
     def from_file(cls, f):
@@ -271,7 +271,8 @@ class Vocab(BaseVocab, OrderedDict):
         word2index = {}
         counts = Counter()
         for i, line in enumerate(f):
-            word, count_str = line.strip().split('\t')
+            word, count_str = line.split('\t')
+            word = word.decode('utf-8')
             word2index[word] = i
             counts[word] = float(count_str)
             if i == 0:
@@ -410,7 +411,7 @@ class GloveVocab(EmbeddedVocab):
         E = rand((len(self), self.n_dim)).astype(dtype)
         n_dim = str(self.n_dim)
 
-        with zipfile.ZipFile(open(zip_file)) as zf:
+        with zipfile.ZipFile(zip_file) as zf:
             # should be only 1 txt file
             names = [info.filename for info in zf.infolist() if
                      info.filename.endswith('.txt') and n_dim in info.filename]
@@ -422,7 +423,7 @@ class GloveVocab(EmbeddedVocab):
             seen = []
             with zf.open(name) as f:
                 for line in f:
-                    toks = line.rstrip().split(' ')
+                    toks = str(line).rstrip().split(' ')
                     word = toks[0]
                     if word in self:
                         seen += [word]

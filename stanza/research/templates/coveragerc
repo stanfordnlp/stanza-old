@@ -1,0 +1,4 @@
+[run]
+# Add problematic libraries here
+# You'll also need to change setup.cfg
+omit = *third-party*

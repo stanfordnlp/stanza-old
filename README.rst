@@ -25,6 +25,18 @@ To use the package, import it in your python code. An example would be:
 
     from stanza.text.vocab import Vocab
     v = Vocab('UNK')
+    
+To use the Python client for the CoreNLP server, `first launch your CoreNLP Java server <https://stanfordnlp.github.io/CoreNLP/corenlp-server.html>`__. Then, in your Python program:
+
+::
+
+    from stanza.nlp.corenlp import CoreNLPClient
+    client = CoreNLPClient(server='http://localhost:9000', default_annotators=['ssplit', 'tokenize', 'lemma', 'pos', 'ner'])
+    annotated = client.annotate('This is an example document. Here is a second sentence')
+    for sentence in annotated.sentences:
+        print('sentence', sentence)
+        for token in sentence:
+            print(token.word, token.lemma, token.pos, token.ner)
 
 Please see the documentation for more use cases.
 
@@ -170,8 +182,8 @@ your repo and contribute your changes back to the master repo:
     # Put a symlink to the actual module somewhere where your code needs it
     ln -s third-party/stanza/stanza stanza
     # Add aliases for the two things you'll need to do with the subtree
-    git alias stanza-update subtree pull --prefix third-party/stanza stanza develop --squash
-    git alias stanza-push subtree push --prefix third-party/stanza stanza develop
+    git config alias.stanza-update 'subtree pull --prefix third-party/stanza stanza develop --squash'
+    git config alias.stanza-push 'subtree push --prefix third-party/stanza stanza develop'
 
 After this, you can use the aliases to push and pull Stanza like so:
 

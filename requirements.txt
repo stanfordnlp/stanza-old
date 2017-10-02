@@ -1,0 +1,10 @@
+requests
+nose
+pypng
+pyhocon
+ConfigArgParse==0.10.0
+mock
+pytest
+python-Levenshtein
+google
+protobuf

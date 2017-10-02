@@ -28,7 +28,7 @@ install:
   - which python
   - python --version
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib scikit-learn
-  - pip install requests nose pypng pyhocon ConfigArgParse mock pytest
+  - pip install requests nose pypng pyhocon ConfigArgParse==0.10.0 mock pytest python-Levenshtein
   - python -c "import requests"
   - pip install --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0rc0-cp27-none-linux_x86_64.whl
   - python -c "import tensorflow"
