@@ -127,6 +127,9 @@ class ProgressMonitor(object):
 
         if len(stack) == 0:
             return start
+        elif stack[0].size == 0:
+            # Avoid divide by zero
+            return finish
         else:
             top_fraction = stack[0].progress * 1.0 / stack[0].size
             next_top_fraction = (stack[0].progress + 1.0) / stack[0].size
