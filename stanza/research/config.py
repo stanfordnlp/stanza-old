@@ -1,13 +1,19 @@
+from __future__ import print_function
+
 import argparse
 import configargparse
 import os
 import sys
 import json
-import logfile
+from . import logfile
 import traceback
-import StringIO
+try:
+    from io import StringIO
+    import builtins
+except ImportError:
+    from StringIO import StringIO
+    import __builtin__ as builtins
 import contextlib
-import __builtin__
 from pyhocon import ConfigFactory
 
 
@@ -60,9 +66,14 @@ class HoconConfigFileParser(object):
                 '<https://github.com/typesafehub/config/blob/master/HOCON.md>.')
 
 
-_options_parser = ArgumentParser(conflict_handler='resolve', add_help=False,
-                                 config_file_parser=HoconConfigFileParser(),
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+try:
+    _options_parser = ArgumentParser(conflict_handler='resolve', add_help=False,
+                                     config_file_parser_class=HoconConfigFileParser,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+except TypeError:
+    _options_parser = ArgumentParser(conflict_handler='resolve', add_help=False,
+                                     config_file_parser=HoconConfigFileParser(),
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 _options_parser.add_argument('--run_dir', '-R', type=str, default=None,
                              help='The directory in which to write log files, parameters, etc. '
                                   'Will be created if it does not exist. If None, output files '
@@ -188,8 +199,8 @@ def open(filename, *args, **kwargs):
     file_path = get_file_path(filename)
     if not file_path:
         # create a dummy file because we don't have a run dir
-        return contextlib.closing(StringIO.StringIO())
-    return __builtin__.open(file_path, *args, **kwargs)
+        return contextlib.closing(StringIO())
+    return builtins.open(file_path, *args, **kwargs)
 
 
 def boolean(arg):
@@ -222,10 +233,10 @@ def dump(data, filename, lines=False, *args, **kwargs):
                 json.dump(data, outfile, *args, **kwargs)
     except IOError:
         traceback.print_exc()
-        print >>sys.stderr, 'Unable to write %s' % filename
+        print ('Unable to write %s' % filename, file=sys.stderr)
     except TypeError:
         traceback.print_exc()
-        print >>sys.stderr, 'Unable to write %s' % filename
+        print ('Unable to write %s' % filename, file=sys.stderr)
 
 
 def dump_pretty(data, filename):

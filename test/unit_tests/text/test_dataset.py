@@ -50,7 +50,7 @@ bob\tt2"""
 
     def test_load_conll(self):
         with NamedTemporaryFile() as f:
-            f.write(self.CONLL)
+            f.write(self.CONLL.encode('utf-8'))
             f.flush()
             d = Dataset.load_conll(f.name)
             self.assertDictEqual(self.CONLL_MOCK, d.fields)

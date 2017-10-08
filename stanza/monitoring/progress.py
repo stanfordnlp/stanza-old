@@ -1,7 +1,7 @@
 """A module for periodically displaying progress on a hierarchy of tasks
 and estimating time to completion.
 
->>> import progress, datetime
+>>> import datetime; from stanza.monitoring import progress
 >>> progress.set_resolution(datetime.datetime.resolution)  # show all messages, don't sample
 >>> progress.start_task('Repetition', 2)
 >>> for rep in range(2):  # doctest: +ELLIPSIS
@@ -95,7 +95,7 @@ class ProgressMonitor(object):
             elapsed time since the last progress report.
         '''
         now = datetime.datetime.now()
-        if (len(self.task_stack) > 1 or self.task_stack[0] > 0) and \
+        if (len(self.task_stack) > 1 or self.task_stack[0].progress > 0) and \
                 now - self.last_report < self.resolution and not force:
             return
 
@@ -112,9 +112,9 @@ class ProgressMonitor(object):
             eta = self.start_time + datetime.timedelta(seconds=estimated_length)
             eta_str = eta.strftime('%c')
 
-        print '%s (~%d%% done, ETA %s)' % (stack_printout,
+        print('%s (~%d%% done, ETA %s)' % (stack_printout,
                                            round(frac_done * 100.0),
-                                           eta_str)
+                                           eta_str))
         self.last_report = datetime.datetime.now()
 
     def fraction_done(self, start=0.0, finish=1.0, stack=None):

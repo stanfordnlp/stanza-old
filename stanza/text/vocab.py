@@ -8,6 +8,8 @@ from collections import Counter, namedtuple, OrderedDict
 import numpy as np
 from copy import copy
 import zipfile
+from six import iteritems
+from six.moves import range as xrange
 from ..util.resource import get_data_or_download
 
 
@@ -159,7 +161,7 @@ class Vocab(BaseVocab, OrderedDict):
         """
         # TODO(kelvinguu): it would be nice to just use `dict.viewkeys`, but unfortunately those are not indexable
 
-        compute_index2word = lambda: self.keys()  # this works because self is an OrderedDict
+        compute_index2word = lambda: list(self.keys())  # this works because self is an OrderedDict
 
         # create if it doesn't exist
         try:
@@ -231,7 +233,7 @@ class Vocab(BaseVocab, OrderedDict):
             raise ValueError('word2index is not a bijection between N words and the integers 0 through N-1.')
 
         # reverse the dictionary
-        index2word = {idx: word for word, idx in word2index.iteritems()}
+        index2word = {idx: word for word, idx in iteritems(word2index)}
 
         vocab = cls(unk=unk)
         for i in xrange(n):
@@ -259,7 +261,7 @@ class Vocab(BaseVocab, OrderedDict):
         """
         for word in self._index2word:
             count = self._counts[word]
-            f.write(u'{}\t{}\n'.format(word, count).encode('utf-8'))
+            f.write(utf8_encode(u'{}\t{}\n'.format(word, count)))
 
     @classmethod
     def from_file(cls, f):
@@ -272,12 +274,30 @@ class Vocab(BaseVocab, OrderedDict):
         counts = Counter()
         for i, line in enumerate(f):
             word, count_str = line.split('\t')
-            word = word.decode('utf-8')
+            word = utf8_decode(word)
             word2index[word] = i
             counts[word] = float(count_str)
             if i == 0:
                 unk = word
         return cls.from_dict(word2index, unk, counts)
+
+
+try:
+    'x'.decode
+except AttributeError:
+    # Python 3
+    def utf8_decode(s):
+        return s
+
+    def utf8_encode(s):
+        return s
+else:
+    # Python 2
+    def utf8_decode(s):
+        return s.decode('utf-8')
+
+    def utf8_encode(s):
+        return s.decode('utf-8')
 
 
 class FrozenVocab(BaseVocab):

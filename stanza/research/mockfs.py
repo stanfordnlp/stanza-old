@@ -1,7 +1,7 @@
 import contextlib
 import mock
 import os
-import StringIO
+from six import BytesIO
 
 
 def yields(thing):
@@ -17,7 +17,7 @@ class MockOpen(object):
     def __call__(self, filename, mode, *args, **kwargs):
         if filename.startswith(self.test_dir):
             if filename not in self.files or mode in ('w', 'w+'):
-                self.files[filename] = StringIO.StringIO()
+                self.files[filename] = BytesIO()
             fakefile = self.files[filename]
             if mode in ('r', 'r+'):
                 fakefile.seek(0)

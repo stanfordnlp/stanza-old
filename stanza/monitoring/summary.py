@@ -59,8 +59,8 @@ import png
 import struct
 import sys
 import time
-from itertools import izip
-from StringIO import StringIO
+from six.moves import zip as izip
+from six import BytesIO
 
 from tensorflow.core.util.event_pb2 import Event
 from tensorflow.core.framework.summary_pb2 import Summary, HistogramProto
@@ -121,7 +121,7 @@ class SummaryWriter(object):
             raise ValueError('Last dimension of `log_image` value should be 3 (RGB), '
                              'instead got shape %s' %
                              (val.shape,))
-        fakefile = StringIO()
+        fakefile = BytesIO()
         png.Writer(size=(val.shape[1], val.shape[0])).write(
             fakefile, val.reshape(val.shape[0], val.shape[1] * val.shape[2]))
         encoded = fakefile.getvalue()

@@ -5,6 +5,7 @@ __author__ = 'victor'
 from collections import OrderedDict
 import random
 import numpy as np
+from six.moves import range
 
 
 class InvalidFieldsException(Exception):
@@ -57,7 +58,7 @@ class Dataset(object):
         """
         if len(self.fields) == 0:
             return 0
-        return len(self.fields.values()[0])
+        return len(next(iter(self.fields.values())))
 
     def __repr__(self):
         return "{}({})".format(self.__class__.__name__, ', '.join(self.fields.keys()))
@@ -103,7 +104,7 @@ class Dataset(object):
         cache = []
 
         with open(fname) as f:
-            header = f.next().strip().split('\t')
+            header = next(f).strip().split('\t')
             header[0] = header[0].lstrip('# ')
             fields = OrderedDict([(head, []) for head in header])
             fields['label'] = []
@@ -131,11 +132,12 @@ class Dataset(object):
             return '{}\n{}'.format(inst['label'], '\n'.join(['\t'.join(['-' if e is None else str(e) for e in row]) for row in zip(*tab)]))
 
         with open(fname, 'wb') as f:
-            f.write('# {}'.format('\t'.join([k for k in self.fields if k != 'label'])))
+            f.write('# {}'.format('\t'.join([k for k in self.fields
+                                             if k != 'label'])).encode('utf-8'))
             for i, d in enumerate(self):
-                f.write('\n{}'.format(instance_to_conll(d)))
+                f.write('\n{}'.format(instance_to_conll(d)).encode('utf-8'))
                 if i != len(self) - 1:
-                    f.write('\n')
+                    f.write('\n'.encode('utf-8'))
 
     def convert(self, converters, in_place=False):
         """
@@ -161,7 +163,7 @@ class Dataset(object):
 
         :return: the shuffled dataset instance
         """
-        order = range(len(self))
+        order = list(range(len(self)))
         random.shuffle(order)
         for name, data in self.fields.items():
             reindexed = []
@@ -193,7 +195,7 @@ class Dataset(object):
         """
         :return: A iterator over the instances in the dataset
         """
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self[i]
 
     def copy(self, keep_fields=None):

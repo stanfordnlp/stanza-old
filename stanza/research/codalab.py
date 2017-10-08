@@ -2,11 +2,10 @@
 import os
 import tempfile
 import subprocess
-import cPickle as pickle
+from six.moves import cPickle as pickle
 from os.path import abspath
 from os.path import dirname
 
-import matplotlib.image as mpimg
 import json
 import sys
 import platform
@@ -23,7 +22,7 @@ site = None
 # http://stackoverflow.com/questions/18421757/live-output-from-subprocess-command
 def shell(cmd, verbose=False, debug=False):
     if verbose:
-        print cmd
+        print(cmd)
 
     if debug:
         return  # don't actually execute command
@@ -127,13 +126,14 @@ class Bundle(object):
         """
         Return an image object that can be immediately plotted with matplotlib
         """
+        import matplotlib.image as mpimg
         with open_file(self.uuid, img_path) as f:
             return mpimg.imread(f)
 
 
 def download_logs(bundle, log_dir):
     if bundle.meta['bundle_type'] != 'run' or bundle.meta['state'] == 'queued':
-        print 'Skipped {}\n'.format(bundle.uuid)
+        print('Skipped {}\n'.format(bundle.uuid))
         return
 
     if isinstance(bundle, str):
@@ -145,12 +145,12 @@ def download_logs(bundle, log_dir):
 
     cmd ='cl down -o {} -w {} {}/logs'.format(log_path, worksheet, uuid)
 
-    print uuid
+    print(uuid)
     try:
         shell(cmd, verbose=True)
     except RuntimeError:
-        print 'Failed to download', bundle.uuid
-    print
+        print('Failed to download {}'.format(bundle.uuid))
+    print('')
 
 
 def report(render, uuids=None, reverse=True, limit=None):
@@ -168,7 +168,7 @@ def report(render, uuids=None, reverse=True, limit=None):
         try:
             render(bundle)
         except Exception:
-            print 'Failed to render', bundle.uuid
+            print('Failed to render {}'.format(bundle.uuid))
 
 
 def monitor_jobs(logdir, uuids=None, reverse=True, limit=None):
@@ -179,15 +179,15 @@ def monitor_jobs(logdir, uuids=None, reverse=True, limit=None):
             os.makedirs(logdir)
     else:
         os.makedirs(logdir)
-        print 'Using logdir:', logdir
+        print('Using logdir:'.format(logdir))
 
     report(lambda bd: download_logs(bd, logdir), uuids, reverse, limit)
 
 
 def tensorboard(logdir):
-    print 'Run this in bash:'
+    print('Run this in bash:')
     shell('tensorboard --logdir={}'.format(logdir), verbose=True, debug=True)
-    print '\nGo to TensorBoard: http://localhost:6006/'
+    print('\nGo to TensorBoard: http://localhost:6006/')
 
 
 def add_to_sys_path(path):
@@ -225,7 +225,7 @@ def launch_job(job_name, cmd=None,
         debug: if True, prints SSH commands, but does not execute them
         tail: show the streaming output returned by CodaLab once it launches the job
     """
-    print 'Remember to set up SSH tunnel and LOG IN through the command line before calling this.'
+    print('Remember to set up SSH tunnel and LOG IN through the command line before calling this.')
 
     def execute(cmd):
         return shell(cmd, verbose=True, debug=debug)

@@ -2,6 +2,7 @@ from collections import Mapping
 from contextlib import contextmanager
 import logging
 import numpy as np
+from six import iteritems
 from stanza.text import Vocab
 
 
@@ -116,7 +117,7 @@ class Embeddings(Mapping):
         :return (dict): A dict mapping from strings to vectors.
         """
         d = {}
-        for word, idx in self.vocab.iteritems():
+        for word, idx in iteritems(self.vocab):
             d[word] = self.array[idx].tolist()
         return d
 

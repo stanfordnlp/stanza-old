@@ -114,7 +114,7 @@ def load_dict(filename):
     try:
         with open(filename) as infile:
             return json.load(infile)
-    except IOError, e:
+    except IOError as e:
         warnings.warn(str(e))
         return {'error.message.value': str(e)}
 
@@ -127,7 +127,7 @@ def load_dataset(filename, transform_func=(lambda x: x)):
                 js = json.loads(line.strip())
                 dataset.append(transform_func(js))
         return dataset
-    except IOError, e:
+    except IOError as e:
         warnings.warn(str(e))
         return [{'error': str(e)}]
 

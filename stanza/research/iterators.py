@@ -1,4 +1,5 @@
-from itertools import islice, imap, chain
+from itertools import islice, chain
+from six.moves import map as imap
 
 
 def iter_batches(iterable, batch_size):
@@ -41,7 +42,7 @@ def iter_batches(iterable, batch_size):
     sourceiter = iter(iterable)
     while True:
         batchiter = islice(sourceiter, batch_size)
-        yield chain([batchiter.next()], batchiter)
+        yield chain([next(batchiter)], batchiter)
 
 
 def gen_batches(iterable, batch_size):

@@ -37,7 +37,7 @@ def best_gpu(max_usage=USAGE_THRESHOLD, verbose=False):
         output, error = proc.communicate()
         if error:
             raise Exception(error)
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write("Couldn't run nvidia-smi to find best GPU, using CPU: %s\n" % str(e))
         sys.stderr.write("(This is normal if you have no GPU or haven't configured CUDA.)\n")
         return "cpu"

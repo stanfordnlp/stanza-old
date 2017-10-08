@@ -1,6 +1,7 @@
 __author__ = 'victor, kelvinguu'
 
 from unittest import TestCase
+from six.moves import range
 from stanza.monitoring.trigger import ThresholdTrigger, SlopeTrigger, PatienceTrigger
 
 
@@ -8,7 +9,7 @@ class TestEarlyStopping(TestCase):
 
     def test_threshold(self):
         e = ThresholdTrigger(min_threshold=-10, max_threshold=2)
-        for val in xrange(-10, 3):
+        for val in range(-10, 3):
             self.assertFalse(e(val))
         self.assertTrue(e(-10.1))
         self.assertTrue(e(2.1))

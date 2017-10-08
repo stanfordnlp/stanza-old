@@ -1,4 +1,5 @@
 import numpy as np
+from six import string_types
 '''
 import warnings
 try:
@@ -30,7 +31,7 @@ def log_likelihood_bits(eval_data, predictions, scores, learner='ignored'):
     computed from the scores in `scores` (which should be in base e, nats).
 
     >>> bits = log_likelihood_bits(None, None, [np.log(0.5), np.log(0.125), np.log(0.25)])
-    >>> [round(b) for b in bits]
+    >>> [float(round(b)) for b in bits]
     [-1.0, -3.0, -2.0]
     '''
     return (np.array(scores) / np.log(2.0)).tolist()
@@ -88,7 +89,7 @@ def bleu(eval_data, predictions, scores='ignored', learner='ignored'):
     0.65599...
     '''
     ref_groups = ([inst.output.split()]
-                  if isinstance(inst.output, basestring) else
+                  if isinstance(inst.output, string_types) else
                   [_maybe_tokenize(r) for r in inst.output]
                   for inst in eval_data)
     return [corpus_bleu(ref_groups, [p.split() for p in predictions])]
@@ -146,7 +147,7 @@ def perplexity(eval_data, predictions, scores, learner='ignored'):
         mean_perplexity = np.exp(np.log(perplexities).mean())
 
     >>> perplexities = perplexity(None, None, [np.log(0.5), np.log(0.1), np.log(0.25)])
-    >>> [round(p) for p in perplexities]
+    >>> [float(round(p)) for p in perplexities]
     [2.0, 10.0, 4.0]
     '''
     return np.exp(-np.array(scores)).tolist()
@@ -164,7 +165,7 @@ def token_perplexity_macro(eval_data, predictions, scores, learner='ignored'):
     ...         Instance(None, '2')]
     >>> scores = [np.log(1.0), np.log(0.25), np.log(1 / 64.)]
     >>> perplexities = token_perplexity_macro(refs, None, scores)
-    >>> [round(p) for p in perplexities]
+    >>> [float(round(p)) for p in perplexities]
     ... # sequence perplexities: [1, 4, 16]
     ... # per-token perplexities: [1, 4, 8]
     [1.0, 4.0, 8.0]
@@ -184,7 +185,7 @@ def token_perplexity_micro(eval_data, predictions, scores, learner='ignored'):
     ...         Instance(None, '2')]
     >>> scores = [np.log(1.0), np.log(0.25), np.log(1 / 64.)]
     >>> perplexity = token_perplexity_micro(refs, None, scores)
-    >>> [round(p) for p in perplexity]
+    >>> [float(round(p)) for p in perplexity]
     ... # sequence perplexities: [1, 4, 64]
     ... # per-token perplexities: [1, 4, 8]
     ... # micro-average: gmean([1, 4, 8, 8])
@@ -195,7 +196,7 @@ def token_perplexity_micro(eval_data, predictions, scores, learner='ignored'):
 
 
 def _maybe_tokenize(seq):
-    if isinstance(seq, basestring):
+    if isinstance(seq, string_types):
         return seq.split()
     else:
         return seq
