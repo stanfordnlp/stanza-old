@@ -55,6 +55,10 @@ def test_k_nearest_approx(embeddings):
     # Code for calculating the correct cosine similarities.
     # for i in range(len(array)):
     #    print 1-scipy.spatial.distance.cosine(array[i,:], query)
+    try:
+        import sklearn.neighbors
+    except ImportError:
+        pytest.skip('sklearn.neighbors not present')
 
     query = np.array([3, 2, 1])
     knn = embeddings.k_nearest_approx(query, 3)

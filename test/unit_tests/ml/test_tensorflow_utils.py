@@ -1,11 +1,19 @@
-import tensorflow as tf
+try:
+    import tensorflow as tf
+    tf.InteractiveSession
+except (ImportError, AttributeError):
+    tf_present = False
+else:
+    tf_present = True
+
 import numpy as np
 from stanza.ml.tensorflow_utils import labels_to_onehots
-from unittest import TestCase
+from unittest import TestCase, skipIf
 
 __author__ = 'kelvinguu'
 
 
+@skipIf(not tf_present, 'Tensorflow is not present')
 class TestTensorFlowUtils(TestCase):
 
     @classmethod

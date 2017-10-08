@@ -26,8 +26,10 @@ def document_pb():
        Obama is a graduate of Columbia University and Harvard Law
        School, where he was president of the Harvard Law Review."
     """
+    import os
+    filename = os.path.join(os.path.dirname(__file__), "document.pb")
     doc = proto.Document()
-    with open("test/unit_tests/nlp/document.pb", "rb") as f:
+    with open(filename, "rb") as f:
         doc.ParseFromString(f.read())
     return doc
 
