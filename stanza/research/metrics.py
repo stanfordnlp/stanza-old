@@ -9,7 +9,7 @@ except ImportError as e:
     nltk_bleu = None
 '''
 
-from .bleu import corpus_bleu
+from .bleu import corpus_bleu, corpus_wer
 from .instance import Instance  # NOQA: for doctest
 from .learner import Learner  # NOQA: for doctest
 
@@ -93,6 +93,25 @@ def bleu(eval_data, predictions, scores='ignored', learner='ignored'):
                   [_maybe_tokenize(r) for r in inst.output]
                   for inst in eval_data)
     return [corpus_bleu(ref_groups, [p.split() for p in predictions])]
+
+
+def wer(eval_data, predictions, scores='ignored', learner='ignored'):
+    '''
+    Return corpus-level word error rate of `predictions` using the `output`
+    field of the instances in `eval_data` as reference. This is returned
+    as a length-1 list of floats.
+
+    >>> data = [Instance('input', 'this is the good'),
+    ...         Instance('input', 'the bad'),
+    ...         Instance('input', 'and the ugly')]
+    >>> wer(data, ['this is the good', 'the good', 'seriously really good'])  # doctest: +ELLIPSIS
+    [0.44444...]
+    '''
+    ref_groups = ([inst.output.split()]
+                  if isinstance(inst.output, basestring) else
+                  [_maybe_tokenize(r) for r in inst.output]
+                  for inst in eval_data)
+    return [corpus_wer(ref_groups, [p.split() for p in predictions])]
 
 
 def _has_4gram_match(ref, pred):

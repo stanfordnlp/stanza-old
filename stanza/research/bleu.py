@@ -83,3 +83,51 @@ def closest_length(refs, pred):
             smallest_diff = diff
             closest_length = len(ref)
     return closest_length
+
+
+def corpus_wer(reference_groups, predictions):
+    import Levenshtein as lev
+    errors = 0
+    reference_len = 0
+    for refs, pred in zip(reference_groups, predictions):
+        coded = _code_tokens_to_unicode(refs + [pred])
+        refs_coded = coded[:-1]
+        pred_coded = coded[-1]
+        dist, neg_len = min((lev.distance(ref, pred_coded), -len(ref)) for ref in refs_coded)
+        errors += dist
+        reference_len += -neg_len
+    return errors * 1.0 / reference_len
+
+
+def _code_tokens_to_unicode(seqs):
+    r'''
+    Converts a collection of tokenized sequences (which can be any hashable object)
+    to Unicode strings, with each token type mapped to a sequentially increasing
+    codepoint. This is to allow the use of string algorithms like Levenshtein on
+    token sequences.
+
+    >>> _code_tokens_to_unicode([['the', 'fat', 'cat'], ['cat', 'cafe']])
+    [u'\x01\x02\x03', u'\x03\x04']
+    >>> _code_tokens_to_unicode([[], []])
+    [u'', u'']
+    '''
+    from collections import defaultdict
+    prev_id = [0]
+
+    def new_token():
+        # argggh why didn't Python 2 figure out scoping
+        # prev_id is only a list so we don't create a local variable shadowing it.
+        prev_id[0] += 1
+        if prev_id[0] >= 0x110000:
+            import warnings
+            warnings.warn('(probably while computing WER:) '
+                          'Number of token types in collection exceeds maximum Unicode code point; '
+                          'wrapping token ids. This may result in underestimating errors.')
+            prev_id[0] = 1
+        return unichr(prev_id[0])
+
+    vocab = defaultdict(new_token)
+    return [
+        u''.join(vocab[t] for t in seq)
+        for seq in seqs
+    ]
