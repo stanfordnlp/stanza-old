@@ -48,6 +48,9 @@ class ArgumentParser(configargparse.Parser):
             args.append(str(value))
         return args
 
+    def convert_item_to_command_line_arg(self, action, key, value):
+        return self.convert_setting_to_command_line_arg(action, key, value)
+
 
 class HoconConfigFileParser(object):
     def parse(self, stream):
