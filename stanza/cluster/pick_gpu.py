@@ -42,7 +42,7 @@ def best_gpu(max_usage=USAGE_THRESHOLD, verbose=False):
         sys.stderr.write("(This is normal if you have no GPU or haven't configured CUDA.)\n")
         return "cpu"
 
-    usages = parse_output(output)
+    usages = parse_output(output.decode('utf-8'))
 
     pct_usage = [max(u.mem, cpu_backoff(u)) for u in usages]
     max_usage = min(max_usage, min(pct_usage))
@@ -149,7 +149,7 @@ def bind_theano(device=None, max_usage=USAGE_THRESHOLD, verbose=True):
     Theano has no way of switching devices after it is bound (which happens
     on import).
     '''
-    if device is None:
+    if device is None or device == 'None':
         device = best_gpu(max_usage, verbose=verbose)
     if device and device != 'cpu':
         import unittest
@@ -160,6 +160,45 @@ def bind_theano(device=None, max_usage=USAGE_THRESHOLD, verbose=True):
             import theano.gpuarray
             theano.gpuarray.use(device.replace('gpu', 'cuda'))
 
+
+import contextlib
+
+@contextlib.contextmanager
+def string_context(device, context=None):
+    if context is not None:
+        with context:
+            yield device
+    else:
+        yield device
+
+
+def torch_context(device=None, max_usage=USAGE_THRESHOLD, verbose=True):
+    '''
+    Return a context manager to tell Torch to use a certain device.
+    This can be used as
+
+      with torch_context(device='gpu2'):
+          x = MyTorchModule().cuda()
+
+    If `device` is None (the default), use the device returned by calling
+    `best_gpu` with the same parameters.
+    '''
+    device = device.lower()
+    if device is None or device == 'none':
+        device = best_gpu(max_usage, verbose=verbose)
+    if device and device != 'cpu':
+        if device.startswith('cuda'):
+            device_num = int(device[4:])
+        elif device.startswith('gpu'):
+            device_num = int(device[3:])
+        else:
+            raise ValueError('Invalid device name "{}" (options are "None", "cpu", "gpu0", '
+                             '"cuda0", ..., where 0 is any GPU number on your '
+                             'machine)'.format(device))
+        import torch.cuda
+        return string_context('gpu' + str(device_num), torch.cuda.device(device_num))
+    else:
+        return string_context('cpu')
 
 
 __all__ = [
