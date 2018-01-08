@@ -108,7 +108,7 @@ def wer(eval_data, predictions, scores='ignored', learner='ignored'):
     [0.44444...]
     '''
     ref_groups = ([inst.output.split()]
-                  if isinstance(inst.output, basestring) else
+                  if isinstance(inst.output, string_types) else
                   [_maybe_tokenize(r) for r in inst.output]
                   for inst in eval_data)
     return [corpus_wer(ref_groups, [p.split() for p in predictions])]

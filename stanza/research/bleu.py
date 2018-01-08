@@ -7,6 +7,8 @@ __author__ = 'wmonroe4'
 from math import log, exp
 from collections import Counter
 
+import six
+
 
 def corpus_bleu(reference_groups, predictions):
     nums = [0] * 4
@@ -106,10 +108,10 @@ def _code_tokens_to_unicode(seqs):
     codepoint. This is to allow the use of string algorithms like Levenshtein on
     token sequences.
 
-    >>> _code_tokens_to_unicode([['the', 'fat', 'cat'], ['cat', 'cafe']])
-    [u'\x01\x02\x03', u'\x03\x04']
-    >>> _code_tokens_to_unicode([[], []])
-    [u'', u'']
+    >>> _code_tokens_to_unicode([['the', 'fat', 'cat'], ['cat', 'cafe']])  # DOCTEST: +ELLIPSIS
+    [...'\x01\x02\x03', ...'\x03\x04']
+    >>> _code_tokens_to_unicode([[], []])  # DOCTEST: +ELLIPSIS
+    [...'', ...'']
     '''
     from collections import defaultdict
     prev_id = [0]
@@ -124,7 +126,7 @@ def _code_tokens_to_unicode(seqs):
                           'Number of token types in collection exceeds maximum Unicode code point; '
                           'wrapping token ids. This may result in underestimating errors.')
             prev_id[0] = 1
-        return unichr(prev_id[0])
+        return six.unichr(prev_id[0])
 
     vocab = defaultdict(new_token)
     return [
