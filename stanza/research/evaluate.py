@@ -59,10 +59,10 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
         else:
             config.dump(inst_outputs, '%s.%sjsons' % (metric_name, split_prefix), lines=True)
 
-        mean = np.mean(inst_outputs)
-        gmean = np.exp(np.log(inst_outputs).mean())
-        sum = np.sum(inst_outputs)
-        std = np.std(inst_outputs)
+        mean = np.mean(inst_outputs).item()
+        gmean = np.exp(np.log(inst_outputs).mean()).item()
+        sum = np.sum(inst_outputs).item()
+        std = np.std(inst_outputs).item()
 
         results.update({
             prefix + 'mean': mean,
