@@ -108,9 +108,9 @@ def _code_tokens_to_unicode(seqs):
     codepoint. This is to allow the use of string algorithms like Levenshtein on
     token sequences.
 
-    >>> _code_tokens_to_unicode([['the', 'fat', 'cat'], ['cat', 'cafe']])  # DOCTEST: +ELLIPSIS
+    >>> _code_tokens_to_unicode([['the', 'fat', 'cat'], ['cat', 'cafe']])  # doctest: +ELLIPSIS
     [...'\x01\x02\x03', ...'\x03\x04']
-    >>> _code_tokens_to_unicode([[], []])  # DOCTEST: +ELLIPSIS
+    >>> _code_tokens_to_unicode([[], []])  # doctest: +ELLIPSIS
     [...'', ...'']
     '''
     from collections import defaultdict
