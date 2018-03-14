@@ -31,7 +31,7 @@ class Learner(object):
         '''
         raise NotImplementedError
 
-    def validate(self, validation_instances, metrics, iteration=None):
+    def validate(self, validation_instances, metrics, iteration=None, pass_split=False):
         '''
         Evaluate this model on `validation_instances` during training and
         output a report.
@@ -50,7 +50,8 @@ class Learner(object):
             return {}
         split_id = 'val%s' % iteration if iteration is not None else 'val'
         train_results = evaluate.evaluate(self, validation_instances,
-                                          metrics=metrics, split_id=split_id)
+                                          metrics=metrics, split_id=split_id,
+                                          pass_split=pass_split)
         output.output_results(train_results, split_id)
         return train_results
 

@@ -5,7 +5,7 @@ from . import config
 
 
 def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
-             write_data=False):
+             write_data=False, pass_split=False):
     '''
     Evaluate `learner` on the instances in `eval_data` according to each
     metric in `metric`, and return a dictionary summarizing the values of
@@ -28,6 +28,9 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
 
     :param bool write_data: If `True`, write out the instances in `eval_data`
         as JSON, one per line, to the file `data.<split_id>.jsons`.
+
+    :param bool pass_split: If `True`, pass `split_id` as `split=split_id` as
+        a keyword argument to the learner's `predict_and_score` method.
     '''
     if metric_names is None:
         metric_names = [
@@ -45,7 +48,10 @@ def evaluate(learner, eval_data, metrics, metric_names=None, split_id=None,
 
     results = {split_prefix + 'num_params': learner.num_params}
 
-    predictions, scores = learner.predict_and_score(eval_data)
+    if pass_split:
+        predictions, scores = learner.predict_and_score(eval_data, split=split_id)
+    else:
+        predictions, scores = learner.predict_and_score(eval_data)
     config.dump(predictions, 'predictions.%sjsons' % split_prefix, lines=True)
     config.dump(scores, 'scores.%sjsons' % split_prefix, lines=True)
 
